@@ -1,0 +1,197 @@
+##############################################################################
+##
+##  Makefile with automatic dependencies generation
+##
+##  (C) 2008, Alexey Presniakov (a@ooo-klad.ru)
+##
+##############################################################################
+
+
+
+##############################################################################
+##  Source files with paths
+##############################################################################
+
+CPP_SOURCES+= \
+	src/main.cpp		src/Thread.cpp		\
+	src/cpp.cpp
+
+C_SOURCES+= \
+	src/gpio_lib.c		src/gpio16.c		\
+	src/timer0.c		src/i2s.c		\
+	src/tv.c		src/tv_data.c		\
+	src/i8080.c		src/i8080_hal.c		\
+	src/vg75.c		src/kbd.c		\
+	src/ps2.c
+
+##############################################################################
+
+
+
+##############################################################################
+##  Directories and file names
+##############################################################################
+# Output file name
+OUT=project
+# Path for source files
+SRCDIR=src
+# Path for binary files
+OUTDIR=out
+# Path for object files
+OBJDIR=.obj
+# Path for dependencies information
+DEPDIR=.dep
+##############################################################################
+
+
+##############################################################################
+##  Additional flash sections
+##############################################################################
+
+FLASH_SECTIONS+= \
+	0x80000	games/klad.bin
+
+##############################################################################
+
+
+##############################################################################
+##  Compiler information
+##############################################################################
+SDK=/home/heavy/KLAD/x-tools/esp8266/sdk
+export PATH := /home/heavy/KLAD/x-tools/esp8266/xtensa-lx106-elf/bin:$(PATH)
+
+BUILD_NUMBER_FILE=.build
+
+CC=xtensa-lx106-elf-gcc
+CPP=xtensa-lx106-elf-g++
+OBJCOPY=xtensa-lx106-elf-objcopy
+OBJDUMP=xtensa-lx106-elf-objdump
+INCLUDES=-I$(SDK)/include -Isrc/
+CFLAGS=-Wall -Wshadow -DICACHE_FLASH -O3 -mlongcalls \
+    -mtext-section-literals \
+    $(INCLUDES)
+CPPFLAGS=-Wall -Wshadow -DICACHE_FLASH -O3 -mlongcalls \
+    -fno-common -fno-builtin -nostdinc++ -fno-rtti -fno-exceptions \
+    -fno-enforce-eh-specs -fnothrow-opt \
+    -mtext-section-literals \
+    $(INCLUDES)
+#    -ffunction-sections -fdata-sections
+LIBS=-L$(SDK)/lib -lmain -lnet80211 -lwpa -llwip -lpp -lphy -Wl,--end-group -lgcc -lcrypto -lsmartconfig -lssl -lupgrade
+LD_USER1=$(SDK)/ld/eagle.app.v6.new.1024.app1.ld
+LD_USER2=$(SDK)/ld/eagle.app.v6.new.1024.app2.ld
+LDFLAGS_BUILD_NUMBER=-Xlinker --defsym -Xlinker __BUILD_NUMBER__=$$(cat $(BUILD_NUMBER_FILE))
+LDFLAGS=-nostdlib -Wl,--start-group $(LIBS) $(LDFLAGS_BUILD_NUMBER)
+#-Wl,--relax,--gc-sections 
+ESPTOOL=esptool.py --port /dev/ttyUSB0
+##############################################################################
+
+
+
+# Target ALL
+all: $(OUTDIR)/$(OUT).1.bin
+
+
+$(OUTDIR)/$(OUT).1.bin: $(OUTDIR)/$(OUT).1
+	@echo "Making user.bin..."; \
+	$(ESPTOOL) elf2image --output $(OUTDIR)/$(OUT).1.bin --version 2 --flash_size 4m $(OUTDIR)/$(OUT).1
+
+# Target for linker user1
+$(OUTDIR)/$(OUT).1: $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(C_SOURCES:.c=.o)) $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(CPP_SOURCES:.cpp=.o)) $(LIB_DEPS)
+	@echo "Linking..."; \
+	if [ ! -f $(BUILD_NUMBER_FILE) ]; then echo "0" >$(BUILD_NUMBER_FILE); fi; \
+	echo $$(($$(cat $(BUILD_NUMBER_FILE)) + 1)) >$(BUILD_NUMBER_FILE); \
+	$(CPP) $(CPPFLAGS) -o $(OUTDIR)/$(OUT).1 -Wl,-Map,out/$(OUT).1.map $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(C_SOURCES:.c=.o)) $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(CPP_SOURCES:.cpp=.o)) -T$(LD_USER1) $(LDFLAGS)
+
+# Build number
+$(SRCDIR)/build.h: .build
+	BUILD=`cat .build`; \
+	echo -e "#define BUILD_NUMBER \"$$BUILD\"" >$(SRCDIR)/build.h
+
+.build:
+	echo "0" >.build
+
+
+# Target for flashing
+flash: $(OUTDIR)/$(OUT).1.bin
+	@echo "Flashing fastboot, user1.bin..."; \
+	$(ESPTOOL) write_flash \
+	    --flash_size 8m \
+	    0x00000 $(SDK)/bin/fastboot.bin	\
+	    0x01000 $(OUTDIR)/$(OUT).1.bin	\
+	    $(FLASH_SECTIONS)
+
+# Target for resetting
+reset:
+	@echo "Resetting..."; \
+	$(ESPTOOL) run
+
+# Target for terminal
+term:
+	@echo "Terminal..."; \
+	telnet localhost 60485
+
+# Target for clean
+clean:
+	rm -f $(OUTDIR)/$(OUT) $(OUTDIR)/$(OUT).map
+	rm -rf $(DEPDIR)
+	rm -rf $(OBJDIR)
+
+# Target for distclean
+distclean:
+	rm -f $(OUTDIR)/$(OUT).1 $(OUTDIR)/$(OUT).2 $(OUTDIR)/$(OUT).1.bin $(OUTDIR)/$(OUT).2.bin $(OUTDIR)/user1.bin $(OUTDIR)/user2.bin $(OUTDIR)/$(OUT).1.map $(OUTDIR)/$(OUT).2.map
+	rm -rf $(DEPDIR)
+	rm -rf $(OBJDIR)
+
+
+# PHONY
+.PHONY: all
+
+
+# Rule for generation of dependency information
+$(DEPDIR)/%.d: %.c
+	@set -e; \
+	echo "Making dependencies for $*.c"; \
+	mkdir -p `dirname "$@"`; \
+	mkdir -p `dirname "$(OBJDIR)/$*.o"`; \
+	ONAME=`echo "$(OBJDIR)/$*.o" | sed -e 's/\\//\\\\\\//g' | sed -e 's/\\./\\\\\\./g'`; \
+	DNAME=`echo "$@" | sed -e 's/\\//\\\\\\//g' | sed -e 's/\\./\\\\\\./g'`; \
+	$(CC) -MM $(CFLAGS) $< \
+	| sed "s/.*:/$$ONAME $$DNAME : /g" > $@; \
+	[ -s $@ ] || rm -f $@
+
+# Rule for generation of dependency information
+$(DEPDIR)/%.d: %.cpp
+	@set -e; \
+	echo "Making dependencies for $*.cpp"; \
+	mkdir -p `dirname "$@"`; \
+	mkdir -p `dirname "$(OBJDIR)/$*.o"`; \
+	ONAME=`echo "$(OBJDIR)/$*.o" | sed -e 's/\\//\\\\\\//g' | sed -e 's/\\./\\\\\\./g'`; \
+	DNAME=`echo "$@" | sed -e 's/\\//\\\\\\//g' | sed -e 's/\\./\\\\\\./g'`; \
+	$(CPP) -MM $(CPPFLAGS) $< \
+	| sed "s/.*:/$$ONAME $$DNAME : /g" > $@; \
+	[ -s $@ ] || rm -f $@
+
+# Rule for compiling C files
+$(OBJDIR)/%.o: %.c
+	@echo "Compiling $<"; \
+	$(CC) $(CFLAGS) -c -o $@ $< && ( \
+	for section in `$(OBJDUMP) -h $@|awk '{print $$2}'|grep -E '^(\.text\.|\.literal\.)'|grep -v .irom|grep -v .iram`; \
+	do \
+	    $(OBJCOPY) --rename-section $$section=.irom0$$section $@; \
+	done; \
+	$(OBJCOPY) --rename-section .text=.irom0.text --rename-section .literal=.irom0.literal $@ )
+
+# Rule for compiling C++ files
+$(OBJDIR)/%.o: %.cpp
+	@echo "Compiling $<"; \
+	$(CPP) $(CPPFLAGS) -c -o $@ $< && ( \
+	for section in `$(OBJDUMP) -h $@|awk '{print $$2}'|grep -E '^(\.text\.|\.literal\.)'|grep -v .irom|grep -v .iram`; \
+	do \
+	    $(OBJCOPY) --rename-section $$section=.irom0$$section $@; \
+	done; \
+	$(OBJCOPY) --rename-section .text=.irom0.text --rename-section .literal=.irom0.literal $@ )
+
+
+# Including dependencies infomation
+-include $(subst $(SRCDIR)/,$(DEPDIR)/$(SRCDIR)/,$(C_SOURCES:.c=.d))
+-include $(subst $(SRCDIR)/,$(DEPDIR)/$(SRCDIR)/,$(CPP_SOURCES:.cpp=.d))
