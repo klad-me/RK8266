@@ -16,6 +16,7 @@
 #include "kbd.h"
 #include "timer0.h"
 #include "ps2.h"
+#include "keymap.h"
 
 
 THREAD(main_thread)
@@ -51,11 +52,13 @@ void ICACHE_FLASH_ATTR user_init()
     os_printf("[Threads]\n");
     threads_init();
     
-    // i8080
-    os_printf("[i8080]\n");
+    // Эмуляция
+    os_printf("[EMU]\n");
     i8080_hal_init();
     vg75_init();
     kbd_init();
+    ps2_init();
+    keymap_init();
     i8080_init();
     i8080_jump(0xF800);
     
@@ -63,7 +66,7 @@ void ICACHE_FLASH_ATTR user_init()
     spi_flash_read(0x80000, (uint32*)i8080_hal_memory(), 16384);
     
     
-    ps2_init();
+    /*ps2_init();
     while (1)
     {
 	uint16_t code;
@@ -92,7 +95,7 @@ void ICACHE_FLASH_ATTR user_init()
 	
 	os_delay_us(10);
 	system_soft_wdt_feed();
-    }
+    }*/
     
     
     // TV-out
@@ -103,37 +106,38 @@ void ICACHE_FLASH_ATTR user_init()
     
     
     uint32_t prev_T=getCycleCount();
-    uint32_t cyc=0;
-    uint32_t cnt=0;
+    uint32_t sec_T=prev_T;
+    uint32_t cycles=0, sec_cycles=0;
     while (1)
     {
-	uint8_t n=100;
-	while (n--)
-	    cyc+=i8080_instruction();
-	
 	uint32_t T=getCycleCount();
-	uint32_t dT=T-prev_T;
-	if (dT >= 160000000)
+	int32_t dT=T-prev_T;
+	
+	if (dT > 0)
+	{
+	    // Можно запускать эмуляцию проца
+	    uint8_t n=100;
+	    while (n--)
+		cycles+=i8080_instruction();
+	    
+	    prev_T+=cycles*90;
+	    sec_cycles+=cycles;
+	    cycles=0;
+	}
+	
+	if ( ((uint32_t)(T-sec_T)) >= 160000000)
 	{
 	    // Прошла секунда
-	    os_printf("Speed=%u\n", cyc);
-	    cyc=0;
-	    prev_T=T;
-	    
-	    cnt++;
-	    if (cnt == 5)
-	    {
-		os_printf("Run game\n");
-		i8080_jump(0x0000);
-	    } else
-	    if (cnt == 10)
-	    {
-		os_printf("Press enter\n");
-		kbd_press(RK_VK);
-	    }
+	    os_printf("Speed=%d\n", (int)sec_cycles);
+	    sec_cycles=0;
+	    sec_T=T;
 	}
 	
 	tv_data_periodic();
+	ps2_leds(kbd_rus(), kbd_rus(), kbd_rus());
+	ps2_periodic();
+	keymap_periodic();
+	
 	system_soft_wdt_feed();
     }
 }

@@ -1,0 +1,8 @@
+Alt		АР2
+CTRL		УС
+Shift		СС
+CAPS		РУC/ЛАТ
+Enter		ВК
+KP_Enter	ПС
+Delete		СТР
+Home		\ (влево-вверх)

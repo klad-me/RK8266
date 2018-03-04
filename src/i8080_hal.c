@@ -85,7 +85,7 @@ void i8080_hal_memory_write_byte(int addr, int byte)
 	    
 	    case 0xA:
 	    case 0xB:
-		os_printf("ParPort: %04x=%02x\n", addr, (uint8_t)byte);
+		//os_printf("ParPort: %04x=%02x\n", addr, (uint8_t)byte);
 		break;
 	    
 	    case 0xC:

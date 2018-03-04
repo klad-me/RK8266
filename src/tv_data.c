@@ -36,7 +36,7 @@ static void RAMFUNC render_line(void)
     uint8_t *data=buf[tail];
     tail=(tail+1) & (N_BUFS-1);
     
-    if ( (line < 8) || (line >= 304-8) )
+    if ( (line < 12) || (line >= 304-12) )
     {
 	// Пустые строки в начале и в конце кадра
 	empty_line(data);
