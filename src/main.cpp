@@ -66,8 +66,31 @@ void ICACHE_FLASH_ATTR user_init()
     ps2_init();
     while (1)
     {
-	ps2_test();
-	os_delay_us(200000);
+	uint16_t code;
+	
+	ps2_periodic();
+	code=ps2_read();
+	if (code) os_printf("PS2: 0x%04X\n", code);
+	switch (code)
+	{
+	    case PS2_0:
+		ps2_leds(0,0,0);
+		break;
+	    
+	    case PS2_1:
+		ps2_leds(1,0,0);
+		break;
+	    
+	    case PS2_2:
+		ps2_leds(0,1,0);
+		break;
+	    
+	    case PS2_3:
+		ps2_leds(0,0,1);
+		break;
+	}
+	
+	os_delay_us(10);
 	system_soft_wdt_feed();
     }
     

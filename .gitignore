@@ -1,0 +1,5 @@
+.dep
+.obj
+out/project.1
+out/project.1.*
+
