@@ -32,6 +32,11 @@ THREAD(main_thread)
 }
 
 
+static void RAMFUNC my_putc1(char c)
+{
+}
+
+
 extern "C" void user_init(void);
 void ICACHE_FLASH_ATTR user_init()
 {
@@ -39,6 +44,9 @@ void ICACHE_FLASH_ATTR user_init()
     system_update_cpu_freq(SYS_CPU_160MHZ);
     uart_div_modify(0, UART_CLK_FREQ / 115200);
     os_delay_us(100000);
+
+    // Заменяем os_printf на себя
+    os_install_putc1((void*)my_putc1);
     
     os_printf("\n\n\n");
     os_printf("Free heap size: %d\n", system_get_free_heap_size());
@@ -99,7 +107,6 @@ void ICACHE_FLASH_ATTR user_init()
     
     
     // TV-out
-    gpio_init_output(15);
     os_printf("[TV]\n");
     os_delay_us(200000);
     tv_init();

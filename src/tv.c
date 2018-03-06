@@ -16,6 +16,9 @@
 #include "tv_data.h"
 
 
+//#define SYNC_PIN	15
+#define SYNC_PIN	1
+
 // Используемые паттерны для I2S
 uint8_t tv_empty_line[80];
 static uint8_t tv_sync_4_28__4_28[80], tv_sync_4_28__28_4[80];
@@ -58,7 +61,7 @@ static void RAMFUNC tv_line_int(void);
 static void RAMFUNC tv_sync_off_int(void)
 {
     // Отключить синхру
-    gpio_off(15);
+    gpio_off(SYNC_PIN);
     timer0_user_cb=tv_line_int;
     timer0_write(timer0_read()+160*(64-5));     // время удержания синхры - 5мкс, ждем до начала следующей строки
 }
@@ -72,7 +75,7 @@ static void RAMFUNC tv_line_int(void)
     static uint8_t short_sync=0;
     
     // Включаем синхру
-    gpio_on(15);
+    gpio_on(SYNC_PIN);
     if (short_sync)
     {
 	// Короткая синхронизация - 5мкс
@@ -116,7 +119,7 @@ static void RAMFUNC i2s_start_int(void)
     i2s_start();
     timer0_user_cb=tv_line_int;
     timer0_write(timer0_read()+160*64+480);
-    gpio_on(15);
+    gpio_on(SYNC_PIN);
 }
 
 
@@ -154,6 +157,9 @@ static const uint8_t* RAMFUNC tv_i2s_cb(void)
 
 void tv_init(void)
 {
+    // Инитим порт SYNC
+    gpio_init_output(SYNC_PIN);
+    
     // Заполняем все паттерны (порядок байт 3-2-1-0)
     
     // Пустая строка - только синхра 4мкс

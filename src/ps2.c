@@ -10,8 +10,13 @@
 //http://www.avrfreaks.net/sites/default/files/PS2%20Keyboard.pdf
 
 
-#define DATA	13
-#define CLK	12
+// NodeMCU
+//#define DATA	13
+//#define CLK	12
+
+// ESP-01
+#define DATA	2
+#define CLK	0
 
 
 #define RXQ_SIZE	16

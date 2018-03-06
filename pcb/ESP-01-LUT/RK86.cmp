@@ -1,0 +1,143 @@
+Cmp-Mod V01 Created by CvPcb (2012-jan-04 GOST)-stable date = Вт 06 мар 2018 08:37:47
+
+BeginCmp
+TimeStamp = /593592B7;
+Reference = C1;
+ValeurCmp = 220uF;
+IdModule  = C1V5H;
+EndCmp
+
+BeginCmp
+TimeStamp = /593592BA;
+Reference = C2;
+ValeurCmp = 220uF;
+IdModule  = C1V5H-INV;
+EndCmp
+
+BeginCmp
+TimeStamp = /59358E4F;
+Reference = J1;
+ValeurCmp = RCA;
+IdModule  = RCA-RP-3;
+EndCmp
+
+BeginCmp
+TimeStamp = /593586E1;
+Reference = J2;
+ValeurCmp = miniUSB;
+IdModule  = USB_B;
+EndCmp
+
+BeginCmp
+TimeStamp = /5A9E15B1;
+Reference = J3;
+ValeurCmp = miniDIN;
+IdModule  = miniDIN6;
+EndCmp
+
+BeginCmp
+TimeStamp = /593E1EE2;
+Reference = R1;
+ValeurCmp = 470=;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /593E2265;
+Reference = R2;
+ValeurCmp = 470=;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /593E1EED;
+Reference = R3;
+ValeurCmp = 150=;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /593E1EF3;
+Reference = R4;
+ValeurCmp = 150=;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /593E1EEA;
+Reference = R5;
+ValeurCmp = 1k=;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /59394738;
+Reference = R6;
+ValeurCmp = 1k;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /59359C80;
+Reference = R7;
+ValeurCmp = 22k;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /59359823;
+Reference = R8;
+ValeurCmp = 22k;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /5935988D;
+Reference = R9;
+ValeurCmp = 22k;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /593598CB;
+Reference = R10;
+ValeurCmp = 22k;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /593E2273;
+Reference = R11;
+ValeurCmp = 1.5k=;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /59394742;
+Reference = R14;
+ValeurCmp = 1k;
+IdModule  = SM0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /593592A8;
+Reference = U1;
+ValeurCmp = LM1117;
+IdModule  = SOT223;
+EndCmp
+
+BeginCmp
+TimeStamp = /593E181B;
+Reference = U2;
+ValeurCmp = 74HC00;
+IdModule  = DIP-14__300_ELL;
+EndCmp
+
+BeginCmp
+TimeStamp = /592C14A8;
+Reference = WIFI1;
+ValeurCmp = ESP-01;
+IdModule  = ESP-01-LARGE-PADS;
+EndCmp
+
+EndListe

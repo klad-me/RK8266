@@ -1,0 +1,284 @@
+# EESchema Netlist Version 1.1 created  Вт 06 мар 2018 08:51:04
+(
+ ( /5A9E15B1 $noname  J3 miniDIN {Lib=CONN_7}
+  (    1 PS2_DATA )
+  (    2 ? )
+  (    3 GND )
+  (    4 +5v )
+  (    5 PS2_CLK )
+  (    6 ? )
+  (    7 GND )
+ )
+ ( /593E2273 $noname  R11 1.5k= {Lib=R}
+  (    1 SYNC_OUT )
+  (    2 COMP_OUT )
+ )
+ ( /593E2265 $noname  R2 470= {Lib=R}
+  (    1 VIDEO_OUT )
+  (    2 COMP_OUT )
+ )
+ ( /593E1EF3 $noname  R4 150= {Lib=R}
+  (    1 COMP_OUT )
+  (    2 GND )
+ )
+ ( /593E1EED $noname  R3 150= {Lib=R}
+  (    1 COMP_OUT )
+  (    2 GND )
+ )
+ ( /593E1EEA $noname  R5 1k= {Lib=R}
+  (    1 SYNC_OUT )
+  (    2 COMP_OUT )
+ )
+ ( /593E1EE2 $noname  R1 470= {Lib=R}
+  (    1 VIDEO_OUT )
+  (    2 COMP_OUT )
+ )
+ ( /593E181B $noname  U2 74HC00 {Lib=74HC00}
+  (    1 SYNC )
+  (    2 RXD )
+  (    3 SYNC_OUT )
+  (    4 N-000022 )
+  (    5 N-000022 )
+  (    6 VIDEO_OUT )
+  (    7 GND )
+  (    8 ? )
+  (    9 ? )
+  (   10 ? )
+  (   11 N-000022 )
+  (   12 SYNC_OUT )
+  (   13 RXD )
+  (   14 Vcc )
+ )
+ ( /59394742 $noname  R14 510 {Lib=R}
+  (    1 GPIO2 )
+  (    2 PS2_DATA )
+ )
+ ( /59394738 $noname  R6 510 {Lib=R}
+  (    1 GPIO0 )
+  (    2 PS2_CLK )
+ )
+ ( /592C14A8 $noname  WIFI1 ESP-01 {Lib=CONN_4X2}
+  (    1 SYNC )
+  (    2 GND )
+  (    3 CH_PD )
+  (    4 GPIO2 )
+  (    5 RST )
+  (    6 GPIO0 )
+  (    7 Vcc )
+  (    8 RXD )
+ )
+ ( /59359C80 $noname  R7 22k {Lib=R}
+  (    1 RST )
+  (    2 Vcc )
+ )
+ ( /593598CB $noname  R10 22k {Lib=R}
+  (    1 GPIO2 )
+  (    2 Vcc )
+ )
+ ( /5935988D $noname  R9 22k {Lib=R}
+  (    1 GPIO0 )
+  (    2 Vcc )
+ )
+ ( /59359823 $noname  R8 22k {Lib=R}
+  (    1 CH_PD )
+  (    2 Vcc )
+ )
+ ( /593592BA $noname  C2 220uF {Lib=CP1}
+  (    1 Vcc )
+  (    2 GND )
+ )
+ ( /593592B7 $noname  C1 220uF {Lib=CP1}
+  (    1 +5v )
+  (    2 GND )
+ )
+ ( /593592A8 $noname  U1 LM1117 {Lib=LM1117}
+  (    1 GND )
+  (    2 Vcc )
+  (    3 +5v )
+  (    4 Vcc )
+ )
+ ( /59358E4F $noname  J1 RCA {Lib=CONN_2}
+  (    1 COMP_OUT )
+  (    2 GND )
+ )
+ ( /593586E1 $noname  J2 USB-B {Lib=USB}
+  (    1 +5v )
+  (    2 ? )
+  (    3 ? )
+  (    4 GND )
+  (    5 GND )
+  (    6 GND )
+ )
+)
+*
+{ Allowed footprints by component:
+$component R11
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R2
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R4
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R3
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R5
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R1
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component U2
+ 14DIP300*
+ SO14*
+$endlist
+$component R14
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R6
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R7
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R10
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R9
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R8
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$endfootprintlist
+}
+{ Pin List by Nets
+Net 1 "RST" "RST"
+ R7 1
+ WIFI1 5
+Net 2 "SYNC" "SYNC"
+ U2 1
+ WIFI1 1
+Net 3 "GND" "GND"
+ C2 2
+ C1 2
+ J2 6
+ J2 5
+ J2 4
+ J1 2
+ R3 2
+ R4 2
+ U2 7
+ U1 1
+ J3 7
+ J3 3
+ WIFI1 2
+Net 4 "CH_PD" "CH_PD"
+ R8 1
+ WIFI1 3
+Net 5 "GPIO2" "GPIO2"
+ WIFI1 4
+ R10 1
+ R14 1
+Net 6 "GPIO0" "GPIO0"
+ R9 1
+ R6 1
+ WIFI1 6
+Net 7 "Vcc" "Vcc"
+ U1 2
+ U2 14
+ WIFI1 7
+ R7 2
+ R10 2
+ C2 1
+ R9 2
+ U1 4
+ R8 2
+Net 8 "RXD" "RXD"
+ U2 2
+ U2 13
+ WIFI1 8
+Net 11 "PS2_DATA" "PS2_DATA"
+ J3 1
+ R14 2
+Net 12 "PS2_CLK" "PS2_CLK"
+ R6 2
+ J3 5
+Net 15 "COMP_OUT" "COMP_OUT"
+ J1 1
+ R4 1
+ R1 2
+ R5 2
+ R11 2
+ R2 2
+ R3 1
+Net 16 "+5v" "+5v"
+ J2 1
+ C1 1
+ J3 4
+ U1 3
+Net 17 "VIDEO_OUT" "VIDEO_OUT"
+ U2 6
+ R1 1
+ R2 1
+Net 18 "SYNC_OUT" "SYNC_OUT"
+ R11 1
+ R5 1
+ U2 3
+ U2 12
+Net 22 "" ""
+ U2 11
+ U2 5
+ U2 4
+}
+#End
