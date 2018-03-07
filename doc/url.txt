@@ -1,1 +1,3 @@
 http://www.computer-museum.ru/technlgy/8bitproc.htm
+https://github.com/pvvx/MinEspSDKLib
+https://github.com/cnlohr/MinEspSDKLib

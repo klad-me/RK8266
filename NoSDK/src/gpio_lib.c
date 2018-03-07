@@ -1,0 +1,24 @@
+#include "gpio_lib.h"
+
+#include "pin_mux_register.h"
+
+
+const uint32_t gpio_mux[] =
+{
+    PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0,
+    PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1,
+    PERIPHS_IO_MUX_GPIO2_U, FUNC_GPIO2,
+    PERIPHS_IO_MUX_U0RXD_U, FUNC_GPIO3,
+    PERIPHS_IO_MUX_GPIO4_U, FUNC_GPIO4,
+    PERIPHS_IO_MUX_GPIO5_U, FUNC_GPIO5,
+    0, 0,
+    0, 0,
+    0, 0,
+    0, 0,
+    0, 0,
+    0, 0,
+    PERIPHS_IO_MUX_MTDI_U, FUNC_GPIO12,
+    PERIPHS_IO_MUX_MTCK_U, FUNC_GPIO13,
+    PERIPHS_IO_MUX_MTMS_U, FUNC_GPIO14,
+    PERIPHS_IO_MUX_MTDO_U, FUNC_GPIO15,
+};

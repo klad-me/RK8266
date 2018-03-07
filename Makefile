@@ -102,8 +102,6 @@ $(OUTDIR)/$(OUT).1.bin: $(OUTDIR)/$(OUT).1
 # Target for linker user1
 $(OUTDIR)/$(OUT).1: $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(C_SOURCES:.c=.o)) $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(CPP_SOURCES:.cpp=.o)) $(LIB_DEPS)
 	@echo "Linking..."; \
-	if [ ! -f $(BUILD_NUMBER_FILE) ]; then echo "0" >$(BUILD_NUMBER_FILE); fi; \
-	echo $$(($$(cat $(BUILD_NUMBER_FILE)) + 1)) >$(BUILD_NUMBER_FILE); \
 	$(CPP) $(CPPFLAGS) -o $(OUTDIR)/$(OUT).1 -Wl,-Map,out/$(OUT).1.map $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(C_SOURCES:.c=.o)) $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(CPP_SOURCES:.cpp=.o)) -T$(LD_USER1) $(LDFLAGS)
 
 # Binary build
