@@ -8,6 +8,7 @@
 #include "i8080.h"
 #include "i8080_hal.h"
 #include "timer0.h"
+#include "ui.h"
 
 
 uint32_t flash_size(void)
@@ -35,6 +36,10 @@ void main_program(void)
     i8080_jump(0xF800);
     
     ets_printf("Flash size=%d\n", flash_size());
+
+    // Читаем игру
+    SPIRead(0x80000, (uint32_t*)i8080_hal_memory(), 6661);
+    
     
     // Инитим экран
     tv_init();
@@ -75,6 +80,7 @@ void main_program(void)
         {
             // Прошла секунда
             ets_printf("Speed=%d reg=0x%08x\n", (int)sec_cycles, READ_PERI_REG(0x3ff00024));
+            //kbd_dump();
             sec_cycles=0;
             sec_T=T;
         }
@@ -84,8 +90,12 @@ void main_program(void)
         ps2_periodic();
         if (keymap_periodic())
         {
-    	    // Нажали ESC
-	    i8080_jump(0xF800);
+    	    // Нажали ESC - запуск меню
+	    ui_start();
+	    
+	    // Сбрасываем время циклов
+	    sec_T=prev_T=getCycleCount();
+	    sec_cycles=0;
         }
     }
 }

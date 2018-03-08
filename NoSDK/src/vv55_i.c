@@ -21,7 +21,7 @@ void kbd_init(void)
 
 void kbd_press(uint16_t code)
 {
-    //os_printf("PRESS 0x%04X\n", code);
+    //ets_printf("PRESS 0x%04X\n", code);
     if (code >> 12)
     {
 	// Модификаторы
@@ -36,7 +36,7 @@ void kbd_press(uint16_t code)
 
 void kbd_release(uint16_t code)
 {
-    //os_printf("RELEASE 0x%04X\n", code);
+    //ets_printf("RELEASE 0x%04X\n", code);
     if (code >> 12)
     {
 	// Модификаторы
@@ -52,7 +52,7 @@ void kbd_release(uint16_t code)
 void kbd_releaseAll(uint16_t code)
 {
     // Отпускаем все, кроме модификаторов
-    //os_printf("RELEASE ALL\n");
+    //ets_printf("RELEASE ALL\n");
     if (code >> 12)
     {
 	// Модификаторы
@@ -71,6 +71,18 @@ bool kbd_rus(void)
 bool kbd_ss(void)
 {
     return (mods & MOD_SS) == 0;
+}
+
+
+void kbd_dump(void)
+{
+    int i;
+    ets_printf("KBD:");
+    for (i=0; i<8; i++)
+    {
+	ets_printf(" %02X", kbd[i]);
+    }
+    ets_printf("\n");
 }
 
 

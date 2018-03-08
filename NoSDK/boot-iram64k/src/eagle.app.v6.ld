@@ -4,7 +4,7 @@ MEMORY
 {
   dport0_0_seg :                        org = 0x3FF00000, len = 0x10
   dram0_0_seg :                         org = 0x3FFE8000, len = 0x14000
-  iram1_0_seg :                         org = 0x40100000, len = 0xFC00	/* last 256b for loader */
+  iram1_0_seg :                         org = 0x40100000, len = 0x8000
   irom0_0_seg :                         org = 0x40240000, len = 0x3C000
 }
 
@@ -183,7 +183,6 @@ SECTIONS
     *(.init.literal)
     *(.init)
     *(.literal .text .literal.* .text.* .stub .gnu.warning .gnu.linkonce.literal.* .gnu.linkonce.t.*.literal .gnu.linkonce.t.*)
-    *(.iram.literal .iram.text)
     *(.fini.literal)
     *(.fini)
     *(.gnu.version)
@@ -209,4 +208,4 @@ SECTIONS
 }
 
 /* get ROM code address */
-INCLUDE "ld/eagle.rom.addr.v6.ld"
+INCLUDE "src/eagle.rom.addr.v6.ld"

@@ -11,7 +11,9 @@ typedef uint8_t bool;
 #define TRUE	1
 
 
-#define NULL	0
+#ifndef NULL
+    #define NULL	((void*)0)
+#endif
 
 
 typedef enum {
@@ -47,6 +49,16 @@ extern void ets_memset(void*, uint8_t, uint32_t);
 extern void ets_memcpy(void*, const void*, uint32_t);
 extern int ets_memcmp(const void *s1, const void *s2, uint32_t n);
 
+int ets_sprintf(char *str, const char *format, ...)  __attribute__ ((format (printf, 2, 3)));
+extern int ets_strcmp(const char *s1, const char *s2);
+extern char *ets_strcpy(char *dest, const char *src);
+extern int ets_strlen(const char *s);
+extern int ets_strncmp(const char *s1, const char *s2, int len);
+extern char *ets_strncpy(char *dest, const char *src, int n);
+extern char *ets_strstr(const char *haystack, const char *needle);
+extern char *ets_strcat(char *dest, const char *src);
+extern char *ets_strchr(const char *s, int c);
+
 extern int ets_get_cpu_frequency(void);
 extern void ets_update_cpu_frequency(int freqmhz);
 
@@ -58,6 +70,8 @@ extern void rom_i2c_writeReg(uint32_t block, uint32_t host_id, uint32_t reg_add,
 extern void rom_i2c_writeReg_Mask(uint32_t block, uint32_t host_id, uint32_t reg_add, uint32_t Msb, uint32_t Lsb, uint32_t indata);
 extern uint8_t rom_i2c_readReg_Mask(uint32_t block, uint32_t host_id, uint32_t reg_add, uint32_t Msb, uint32_t Lsb);
 extern uint8_t rom_i2c_readReg(uint32_t block, uint32_t host_id, uint32_t reg_add);
+
+extern void software_reset(int param);
 
 
 #define BIT(nr)			(1UL << (nr))

@@ -108,6 +108,9 @@ void kbd_releaseAll(uint16_t code);
 bool kbd_rus(void);
 bool kbd_ss(void);
 
+void kbd_dump(void);
+
+
 void vv55_i_W(uint8_t A, uint8_t value);
 uint8_t vv55_i_R(uint8_t A);
 

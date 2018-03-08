@@ -13,16 +13,8 @@
 ##############################################################################
 
 C_SOURCES+= \
-	src/startup.c		src/timer0.c		\
-	src/i2s.c		src/gpio_lib.c		\
-	src/tv.c		src/vg75.c		\
-	src/zkg.c		src/xlat.c		\
-	src/vv55_i.c		src/i8080_hal.c		\
-	src/i8080.c		src/main.c		\
-	src/ps2.c		src/keymap.c		\
-	src/ui.c		src/menu.c		\
-	src/xprintf.c		src/str.c		\
-	src/tape.c
+	src/main.c		\
+	src/check_image.c
 
 ##############################################################################
 
@@ -32,7 +24,7 @@ C_SOURCES+= \
 ##  Directories and file names
 ##############################################################################
 # Output file name
-OUT=rk8266
+OUT=boot
 # Path for source files
 SRCDIR=src
 # Path for binary files
@@ -52,22 +44,23 @@ export PATH := /home/heavy/KLAD/x-tools/esp8266/xtensa-lx106-elf/bin:$(PATH)
 
 CC=xtensa-lx106-elf-gcc
 INCLUDES=-I$(SRCDIR)
-CFLAGS=-O3 -Wall -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals -D__ets__ $(INCLUDES)
-LIBS=-lgcc
-LD_SCRIPT=ld/eagle.app.v6.ld
+CFLAGS=-Os -Wall -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals  -D__ets__ -DICACHE_FLASH $(INCLUDES)
+LIBS=
+LD_SCRIPT=$(SRCDIR)/eagle.app.v6.ld
 LDFLAGS=-nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static $(LIBS)
 ESPTOOL=esptool.py
+ESPTOOL2=/home/heavy/KLAD/x-tools/esp8266/esptool2/esptool2
 ##############################################################################
 
 
 
 # Target ALL
-all: $(OUTDIR)/$(OUT)-0x00000.bin
+all: $(OUTDIR)/$(OUT).bin
 
 
-$(OUTDIR)/$(OUT)-0x00000.bin: $(OUTDIR)/$(OUT)
+$(OUTDIR)/$(OUT).bin: $(OUTDIR)/$(OUT)
 	@echo "Making $(OUT).bin..."; \
-	$(ESPTOOL) elf2image -e 1 -o $(OUTDIR)/$(OUT)- $^
+	$(ESPTOOL2) -quiet -bin -boot0 -4096 -qio -40 $^ $@ .text .rodata
 
 # Target for linker
 $(OUTDIR)/$(OUT): $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(C_SOURCES:.c=.o))
@@ -75,16 +68,24 @@ $(OUTDIR)/$(OUT): $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(C_SOURCES:.c=.o))
 	$(CC) $(CFLAGS) -o $@ -Wl,-Map,$(OUTDIR)/$(OUT).map $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(C_SOURCES:.c=.o)) -T$(LD_SCRIPT) $(LDFLAGS)
 
 # Target for flashing
-flash: $(OUTDIR)/$(OUT)-0x00000.bin
+flash: $(OUTDIR)/$(OUT).bin
 	@echo "Flashing..."; \
 	$(ESPTOOL) write_flash \
 	    --flash_size 8m \
 	    --flash_freq 20m \
 	    --flash_mode dio \
-	    0x00000 boot-iram64k/out/boot.bin \
-	    0x01000 $(OUTDIR)/$(OUT)-0x00000.bin \
-	    0x80000 basic80.bin && \
+	    0x00000 $(OUTDIR)/$(OUT).bin && \
 	$(ESPTOOL) run
+
+# Target for flashing
+flash2: $(OUTDIR)/$(OUT).bin
+	@echo "Flashing..."; \
+	$(ESPTOOL) write_flash \
+	    --flash_size 8m \
+	    --flash_freq 20m \
+	    --flash_mode dio \
+	    0x00000 $(OUTDIR)/$(OUT).bin \
+	    0x01000 $(OUTDIR)/app.bin
 
 # Target for resetting
 reset:
@@ -104,7 +105,7 @@ clean:
 
 # Target for distclean
 distclean:
-	rm -f $(OUTDIR)/$(OUT) $(OUTDIR)/$(OUT)-0x*.bin $(OUTDIR)/$(OUT).map
+	rm -f $(OUTDIR)/$(OUT) $(OUTDIR)/$(OUT).bin $(OUTDIR)/$(OUT).map
 	rm -rf $(DEPDIR)
 	rm -rf $(OBJDIR)
 

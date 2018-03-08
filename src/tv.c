@@ -16,8 +16,8 @@
 #include "tv_data.h"
 
 
-//#define SYNC_PIN	15
-#define SYNC_PIN	1
+#define SYNC_PIN	15
+//#define SYNC_PIN	1
 
 // Используемые паттерны для I2S
 uint8_t tv_empty_line[80];

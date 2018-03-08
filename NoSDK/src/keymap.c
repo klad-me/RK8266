@@ -3,7 +3,7 @@
 #include "ps2.h"
 #include "vv55_i.h"
 #include "pt/pt.h"
-#include "pt_sleep.h"
+#include "pt.h"
 
 
 struct kmap
@@ -201,7 +201,7 @@ static PT_THREAD(handle_code(struct pt *pt))
 		    {
 			// Просто СС
 			if (code & 0x8000)
-			    kbd_release(map[n].rk); else
+			    kbd_releaseAll(map[n].rk); else
 			    kbd_press(map[n].rk);
 		    } else
 		    {
@@ -214,20 +214,14 @@ static PT_THREAD(handle_code(struct pt *pt))
 				kbd_release(RK_SS); else
 				kbd_press(RK_SS);
 			    
-			    // Ждем
-			    PT_SLEEP(pt, KEY_T*1000);
-			    
 			    // Нажимаем кнопку
 			    kbd_press(map[n].rk & 0xFFF);
 			    
 			    // Ждем
-			    PT_SLEEP(pt, KEY_T*1000);
+			    PT_SLEEP(KEY_T*1000);
 			    
 			    // Отжимаем кнопку
 			    kbd_releaseAll(0);
-			    
-			    // Ждем
-			    PT_SLEEP(pt, KEY_T*1000);
 			    
 			    // Меняем состояние СС обратно
 			    if (kbd_ss())
@@ -272,6 +266,8 @@ static PT_THREAD(task(struct pt *pt))
 		PT_YIELD(pt);
 		continue;
 	    }
+	    
+	    //ets_printf("PS2: 0x%04x\n", code);
 	    
 	    if (code==PS2_ESC)
 	    {

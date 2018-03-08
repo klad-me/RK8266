@@ -2,7 +2,7 @@
 
 #include "gpio_lib.h"
 #include "timer0.h"
-#include "pt_sleep.h"
+#include "pt.h"
 
 
 //http://www.avrfreaks.net/sites/default/files/PS2%20Keyboard.pdf
@@ -193,12 +193,12 @@ static PT_THREAD(task(struct pt *pt))
 	    // CLK вниз
 	    gpio_off(CLK);
 	    gpio_init_output(CLK);
-	    PT_SLEEP(pt, 100);
+	    PT_SLEEP(100);
 	    
 	    // DATA вниз (старт бит)
 	    gpio_off(DATA);
 	    gpio_init_output(DATA);
-	    PT_SLEEP(pt, 200);
+	    PT_SLEEP(200);
 	    
 	    // Отправляем команду "Set/Reset LEDs"
 	    ack=0;
@@ -208,7 +208,7 @@ static PT_THREAD(task(struct pt *pt))
 	    gpio_init_input_pu(CLK);
 	    
 	    // Ждем немного
-	    PT_SLEEP(pt, 5000);
+	    PT_SLEEP(5000);
 	    
 	    // Проверим подтверждение
 	    if (! ack) continue;
@@ -218,12 +218,12 @@ static PT_THREAD(task(struct pt *pt))
 	    // CLK вниз
 	    gpio_off(CLK);
 	    gpio_init_output(CLK);
-	    PT_SLEEP(pt, 100);
+	    PT_SLEEP(100);
 	    
 	    // DATA вниз (старт бит)
 	    gpio_off(DATA);
 	    gpio_init_output(DATA);
-	    PT_SLEEP(pt, 200);
+	    PT_SLEEP(200);
 	    
 	    // Отправляем лампочки
 	    ack=0;
@@ -234,7 +234,7 @@ static PT_THREAD(task(struct pt *pt))
 	    gpio_init_input_pu(CLK);
 	    
 	    // Ждем немного
-	    PT_SLEEP(pt, 5000);
+	    PT_SLEEP(5000);
 	    
 	    // Проверим подтверждение
 	    if (! ack) continue;
