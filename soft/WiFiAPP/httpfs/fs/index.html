@@ -1,0 +1,169 @@
+<html>
+<head> 
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
+    <title>Программы</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+</head> 
+<body bgcolor="black" alink="red" link="white" vlink="white" text="white" onload=""><font face="sans-serif"> 
+    <script language="javascript">
+	var TYPE_TAPE=1, TYPE_PROG=2, TYPE_GAME=3, TYPE_UTIL=4;
+	var files=[];
+	var flashSize=0, flashFree=0;
+	
+	
+	function addFile(type, name, size)
+	{
+	    files.push( [type, name, size] );
+	}
+	
+	
+	function flashInfo(size, free)
+	{
+	    flashSize=size;
+	    flashFree=free;
+	}
+	
+	
+	function sizeStr(size)
+	{
+	    if (size < 1024)
+	    {
+		return "" + size + " b";
+	    } else
+	    if (size < 1024*1024)
+	    {
+		return "" + (size/1024).toFixed(1) + " K";
+	    } else
+	    {
+		return "" + (size/(1024*1024)).toFixed(1) + " M";
+	    }
+	}
+	
+	
+	function listFiles(type, path)
+	{
+	    document.write(
+		"<table border=0 cellspacing=2>"+
+		    "<tr bgcolor=\"#505050\">"+
+			"<th width=200>Файл</th>"+
+			"<th width=70>Размер</th>"+
+			"<th width=25>X</th>"+
+		    "</tr>"
+		);
+	    var toggle=false;
+	    for (var i=0; i<files.length; i++)
+	    {
+		if (files[i][0]==type)
+		{
+		    document.write(
+			"<tr bgcolor=\""+(toggle ? "#202020" : "#101010")+"\">"+
+			    "<td align=left><a href=\""+path+files[i][1]+".rk\">"+files[i][1]+"</a></td>"+
+			    "<td align=right>"+sizeStr(files[i][2])+"</td>"+
+			    "<td align=center><a href=\"/del/"+files[i][1]+"\" onclick=\"return confirm('Подтвердите удаление файла')\">X</a></td>"+
+			"</tr>"
+			);
+		    
+		    toggle=!toggle;
+		}
+	    }
+	    document.write("</table>");
+	}
+	
+	
+	function uploadFile(event, path)
+	{
+	    var f = event.target.files[0];
+	    $.ajax({
+                url: path+f.name,
+    		type: "PUT",
+    		data: f,
+    		processData: false,
+                	success: function () {
+                	    console.log("upload ok\n");
+                	    location.reload(true);
+                	    },
+                	error : function () {
+                	    console.log("upload error\n");
+                	    alert("Ошибка загрузки файла (файл существует?)");
+                	    },
+		});
+	}
+    </script>
+    <script src="dir.js"></script>
+    
+    
+    <img src="radio-86rk.png" alt="РАДИО-86РК" />
+    <hr/>
+    
+    
+    <br/>
+    <h3>Диск</h3>
+    <table border=0 cellspacing=2>
+	<tr bgcolor="#505050">
+	    <td width=200><b>Общий объем:</b></td>
+	    <td width=70><b>
+		<script language="javascript">
+		    document.write(sizeStr(flashSize));
+		</script>
+	    </b></td>
+	</tr>
+	<tr bgcolor="#505050">
+	    <td><b>Свободно:</b></td>
+	    <td><b>
+		<script language="javascript">
+		    document.write(sizeStr(flashFree));
+		</script>
+	    </b></td>
+	</tr>
+    </table>
+    <hr/>
+    
+    
+    
+    <br/>
+    <h3>Программы:</h3>
+    
+    <script language="javascript">
+	listFiles(TYPE_PROG, '/prog/');
+    </script>
+    <br/>
+    <input type="file" onchange="uploadFile(event, '/prog/')">
+    <hr/>
+    
+    
+    <br/>
+    <h3>Игры:</h3>
+    
+    <script language="javascript">
+	listFiles(TYPE_GAME, '/game/');
+    </script>
+    <br/>
+    <input type="file" onchange="uploadFile(event, '/game/')">
+    <hr/>
+    
+    
+    <br/>
+    <h3>Утилиты:</h3>
+    
+    <script language="javascript">
+	listFiles(TYPE_UTIL, '/util/');
+    </script>
+    <br/>
+    <input type="file" onchange="uploadFile(event, '/util/')">
+    <hr/>
+    
+    
+    <br/>
+    <h3>Магнитофонные записи:</h3>
+    
+    <script language="javascript">
+	listFiles(TYPE_TAPE, '/tape/');
+    </script>
+    <br/>
+    <input type="file" onchange="uploadFile(event, '/tape/')">
+    <hr/>
+    
+    
+    
+</font></body>
+</html>
