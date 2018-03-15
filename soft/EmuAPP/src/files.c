@@ -12,7 +12,7 @@ int16_t load_file(uint16_t n)
 {
     uint8_t hdr[8];
     uint8_t hdr_size;
-    uint16_t start, size;
+    uint16_t start, end;
     
     // Читаем заголовок
     ffs_read(n, 0, hdr, sizeof(hdr));
@@ -22,17 +22,20 @@ int16_t load_file(uint16_t n)
     {
 	// Есть байт - пропускаем его
 	start=(hdr[1] << 8) | hdr[2];
-	size=(hdr[3] << 8) | hdr[4];
+	end=(hdr[3] << 8) | hdr[4];
 	hdr_size=5;
     } else
     {
 	start=(hdr[0] << 8) | hdr[1];
-	size=(hdr[2] << 8) | hdr[3];
+	end=(hdr[2] << 8) | hdr[3];
 	hdr_size=4;
     }
     
+    uint16_t size=end-start+1;
+    
     // Проверим адреса
-    if ( (start >= 0x8000) ||
+    if ( (end < start) ||
+	 (start >= 0x8000) ||
 	 (start+size > 0x8000) )
     {
 	// Неверный адрес в памяти
