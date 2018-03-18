@@ -25,7 +25,7 @@ C_SOURCES+= \
 	src/xprintf.c		src/str.c		\
 	src/tape.c		src/reboot.c		\
 	src/crc8.c		src/ffs.c		\
-	src/files.c
+	src/files.c		src/align4.c
 
 ##############################################################################
 

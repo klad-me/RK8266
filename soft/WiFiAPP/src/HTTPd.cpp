@@ -61,12 +61,14 @@ HTTPd::HTTPd(TCPSocket *parent, struct espconn *c)
 
 TCPSocket* HTTPd::clientConnected(struct espconn *c)
 {
+    DEBUG("HTTPd: new connection\n");
     return new HTTPd(this, c);
 }
 
 
 void HTTPd::dataReceived(const uint8_t *data, int len)
 {
+    DEBUG("HTTPd: data received size=%d\n", len);
 again:
     if (len==0) return;
     
@@ -134,6 +136,7 @@ again:
         	    if (get.path)
         	    {
         		// Это GET
+        		DEBUG("HTTPd: GET method\n");
         		http_method=METHOD_GET;
         		
         		// Ищем у обработчика

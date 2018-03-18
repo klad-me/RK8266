@@ -39,8 +39,6 @@ OUT=wifi
 SRCDIR=src
 # Path for binary files
 OUTDIR=out
-# Path for builds
-BUILDDIR=builds
 # Path for object files
 OBJDIR=.obj
 # Path for dependencies information
@@ -64,8 +62,6 @@ FLASH_SECTIONS+= \
 SDK=/home/heavy/KLAD/x-tools/esp8266/sdk
 export PATH := /home/heavy/KLAD/x-tools/esp8266/xtensa-lx106-elf/bin:$(PATH)
 
-BUILD_NUMBER=$(shell git rev-list --count HEAD)
-
 CC=xtensa-lx106-elf-gcc
 CPP=xtensa-lx106-elf-g++
 OBJCOPY=xtensa-lx106-elf-objcopy
@@ -82,8 +78,7 @@ CPPFLAGS=-Wall -Wshadow -DICACHE_FLASH -O3 -mlongcalls \
 LIBS=-L$(SDK)/lib -lmain -lnet80211 -lwpa -llwip -lpp -lphy -Wl,--end-group -lgcc -lcrypto
 # -lsmartconfig -lssl -lupgrade
 LD_SCRIPT=ld/eagle.app.v6.ld
-LDFLAGS_BUILD_NUMBER=-Xlinker --defsym -Xlinker __BUILD_NUMBER__=$(BUILD_NUMBER)
-LDFLAGS=-nostdlib -Wl,--start-group $(LIBS) $(LDFLAGS_BUILD_NUMBER) -Wl,--relax,--gc-sections 
+LDFLAGS=-nostdlib -Wl,--start-group $(LIBS) -Wl,--relax,--gc-sections 
 ESPTOOL=esptool.py --port /dev/ttyUSB0
 ##############################################################################
 
@@ -102,21 +97,12 @@ $(OUTDIR)/$(OUT).1: $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(C_SOURCES:.c=.o)) 
 	@echo "Linking..."; \
 	$(CPP) $(CPPFLAGS) -o $(OUTDIR)/$(OUT).1 -Wl,-Map,out/$(OUT).1.map $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(C_SOURCES:.c=.o)) $(subst $(SRCDIR)/,$(OBJDIR)/$(SRCDIR)/,$(CPP_SOURCES:.cpp=.o)) -T$(LD_SCRIPT) $(LDFLAGS)
 
-# Binary build
-build: $(OUTDIR)/$(OUT).1.bin
-	@echo "Make build $(BUILD_NUMBER)...";	\
-	mkdir -p $(BUILDDIR)/$(BUILD_NUMBER) || exit;	\
-	cp $(SDK)/bin/fastboot.bin $(BUILDDIR)/$(BUILD_NUMBER)/0x00000.bin; \
-	cp $(OUTDIR)/$(OUT).1.bin $(BUILDDIR)/$(BUILD_NUMBER)/0x01000.bin; \
-	cp games/klad.bin $(BUILDDIR)/$(BUILD_NUMBER)/0x80000.bin
-
 # Target for flashing
 flash: $(OUTDIR)/$(OUT).1.bin
-	@echo "Flashing fastboot, user1.bin..."; \
+	@echo "Flashing user1.bin..."; \
 	$(ESPTOOL) write_flash \
 	    --flash_size 8m \
-	    0x00000 $(SDK)/bin/fastboot.bin	\
-	    0x01000 $(OUTDIR)/$(OUT).1.bin	\
+	    0x10000 $(OUTDIR)/$(OUT).1.bin	\
 	    $(FLASH_SECTIONS)
 
 # Target for resetting

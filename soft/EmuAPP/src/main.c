@@ -7,24 +7,16 @@
 #include "keymap.h"
 #include "i8080.h"
 #include "i8080_hal.h"
+#include "tape.h"
 #include "timer0.h"
 #include "ui.h"
+#include "menu.h"
 #include "ffs.h"
 #include "board.h"
 
 
-static void my_putc1(char c)
-{
-}
-
-
 void main_program(void)
 {
-#ifndef DO_DEBUG
-    // Заменяем ets_printf на себя
-    ets_install_putc1((void*)my_putc1);
-#endif
-    
     // Инитим файловую систему
     ffs_init();
     
@@ -43,19 +35,23 @@ void main_program(void)
     ps2_init();
     keymap_init();
     
+    // Инитим магнитофон
+    tape_init();
+    
     // Запускаем эмуляцию
     uint32_t prev_T=getCycleCount();
     uint32_t sec_T=prev_T;
     uint32_t cycles=0, sec_cycles=0;
+    bool turbo=false;
     while (1)
     {
         uint32_t T=getCycleCount();
         int32_t dT=T-prev_T;
 	
-        if (dT > 0)
+        if ( (dT > 0) || (turbo) )
         {
             // Можно запускать эмуляцию проца
-            uint8_t n=20;
+            uint8_t n=turbo ? 200 : 20;
             while (n--)
             {
         	uint16_t c=i8080_instruction();
@@ -63,7 +59,9 @@ void main_program(void)
                 i8080_cycles+=c;
             }
 	    
-            prev_T+=cycles*90;
+            if (! turbo)
+        	prev_T+=cycles*90; else
+        	prev_T=T;
             sec_cycles+=cycles;
             cycles=0;
         }
@@ -77,16 +75,38 @@ void main_program(void)
             sec_T=T;
         }
 	
-        ps2_leds(kbd_rus(), kbd_rus(), kbd_rus());
-        ps2_periodic();
-        if (keymap_periodic())
-        {
-    	    // Нажали ESC - запуск меню
+	// Вся периодика
+	
+	if (tape_periodic())
+	{
+	    // Закончена запись на магнитофон - надо предложить сохранить файл
 	    ui_start();
+		tape_save();
+	    ui_stop();
 	    
 	    // Сбрасываем время циклов
 	    sec_T=prev_T=getCycleCount();
 	    sec_cycles=0;
+	}
+        ps2_leds(kbd_rus(), false, turbo);
+        ps2_periodic();
+        switch (keymap_periodic())
+        {
+    	    case PS2_ESC:
+    		// Нажали ESC - запуск меню
+		ui_start();
+		    menu();
+		ui_stop();
+		
+		// Сбрасываем время циклов
+		sec_T=prev_T=getCycleCount();
+		sec_cycles=0;
+		break;
+	    
+	    case PS2_SCROLL:
+		// Переключатель турбо
+		turbo=!turbo;
+		break;
         }
     }
 }

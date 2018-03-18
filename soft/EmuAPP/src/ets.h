@@ -16,6 +16,9 @@ typedef uint8_t bool;
 #endif
 
 
+#define AT_IRAM	__attribute__((section(".iram.text")))
+
+
 typedef enum {
     GPIO_PIN_INTR_DISABLE = 0,
     GPIO_PIN_INTR_POSEDGE = 1,

@@ -4,6 +4,7 @@
 #include "vv55_i.h"
 #include "pt/pt.h"
 #include "pt.h"
+#include "align4.h"
 
 
 struct kmap
@@ -13,11 +14,8 @@ struct kmap
 };
 
 
-static bool esc_pressed=false;
-
-
 // Раскладка для символов с нажатым Shift (где установлен RK_SS надо отжать СС)
-static const struct kmap kb_shift[]=
+static const struct kmap AT_IRAM kb_shift[]=
 {
     { PS2_EQUALS,	RK_SEMICOLON	},	// '+' (Shift + '=' => СС + ';')
     { PS2_QUOTE,	RK_2		},	// '"' (Shift + ''' => CC + '2')
@@ -36,7 +34,7 @@ static const struct kmap kb_shift[]=
 
 
 // Раскладка для русских букв (включен РУС без СС или ЛАТ с СС)
-static const struct kmap kb_rus[]=
+static const struct kmap AT_IRAM kb_rus[]=
 {
     { PS2_Q,		RK_J		},	// 'Й'
     { PS2_W,		RK_C		},	// 'Ц'
@@ -78,7 +76,7 @@ static const struct kmap kb_rus[]=
 
 
 // Остальная раскладка (в т.ч. и ЛАТ)
-static const struct kmap kb_lat[]=
+static const struct kmap AT_IRAM kb_lat[]=
 {
     // Ряд 1
     { PS2_SEMICOLON,	RK_SEMICOLON	},	// ';'
@@ -178,7 +176,7 @@ static const struct kmap kb_lat[]=
 };
 
 
-static uint16_t code;
+static uint16_t code, unhandled_code=0;
 static const struct kmap *map;
 
 
@@ -186,23 +184,25 @@ static PT_THREAD(handle_code(struct pt *pt))
 {
     static uint8_t n;
     static uint32_t _sleep;
+    static uint16_t c, r;
     
     PT_BEGIN(pt);
 	n=0;
-	while (map[n].ps2)
+	while ( (c=r_u16(&map[n].ps2)) != 0 )
 	{
-	    if (map[n].ps2 == (code & 0x7fff))
+	    if (c == (code & 0x7fff))
 	    {
 		// Нашли
-		if (map[n].rk & RK_SS)
+		r=r_u16(&map[n].rk);
+		if (r & RK_SS)
 		{
 		    // Нужно эмулировать нажатие/отжатие СС + кнопку
-		    if (map[n].rk==RK_SS)
+		    if (r==RK_SS)
 		    {
 			// Просто СС
 			if (code & 0x8000)
-			    kbd_releaseAll(map[n].rk); else
-			    kbd_press(map[n].rk);
+			    kbd_releaseAll(r); else
+			    kbd_press(r);
 		    } else
 		    {
 			// Эмуляция нажатия/отжатия СС + кнопка
@@ -215,7 +215,7 @@ static PT_THREAD(handle_code(struct pt *pt))
 				kbd_press(RK_SS);
 			    
 			    // Нажимаем кнопку
-			    kbd_press(map[n].rk & 0xFFF);
+			    kbd_press(r & 0xFFF);
 			    
 			    // Ждем
 			    PT_SLEEP(KEY_T*1000);
@@ -234,8 +234,8 @@ static PT_THREAD(handle_code(struct pt *pt))
 		{
 		    // Просто кнопка
 		    if (code & 0x8000)
-		        kbd_releaseAll(map[n].rk); else
-		        kbd_press(map[n].rk);
+		        kbd_releaseAll(r); else
+		        kbd_press(r);
 		}
 		
 		// Обнуляем код - значит что обработали
@@ -267,14 +267,6 @@ static PT_THREAD(task(struct pt *pt))
 		continue;
 	    }
 	    
-	    //ets_printf("PS2: 0x%04x\n", code);
-	    
-	    if (code==PS2_ESC)
-	    {
-		// Нажали ESC
-		esc_pressed=true;
-	    }
-	    
 	    if (kbd_ss())
 	    {
 		// Отдельно обрабатываем кнопки с нажатым Shift, чтобы они совпадали с современной клавиатурой
@@ -295,6 +287,10 @@ static PT_THREAD(task(struct pt *pt))
 	    // Оставшиеся символы
 	    map=kb_lat;
 	    PT_SPAWN(pt, &sub, handle_code(&sub));
+	    if (code==0) continue;
+	    
+	    // Код не обработан
+	    unhandled_code=code;
 	}
     PT_END(pt);
 }
@@ -309,12 +305,12 @@ void keymap_init(void)
 }
 
 
-bool keymap_periodic(void)
+uint16_t keymap_periodic(void)
 {
     (void)PT_SCHEDULE(task(&pt_task));
     
-    bool ret=esc_pressed;
-    esc_pressed=false;
+    uint16_t ret=unhandled_code;
+    unhandled_code=0;
     
     return ret;
 }

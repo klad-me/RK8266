@@ -65,6 +65,8 @@
 // Control
 #define PS2_BACKSPACE	0x66
 #define PS2_CAPS	0x58
+#define PS2_SCROLL	0x7E
+#define PS2_NUM		0x77
 #define PS2_L_SHIFT	0x12
 #define PS2_R_SHIFT	0x59
 #define PS2_L_CTRL	0x14
@@ -128,7 +130,7 @@
 #define KEY_RIGHT	'r'
 
 
-char ps2_sym(uint16_t code);
+char ps2_sym(void);
 
 
 #endif

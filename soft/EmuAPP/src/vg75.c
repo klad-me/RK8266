@@ -3,6 +3,7 @@
 #include "tv.h"
 #include "zkg.h"
 #include "i8080_hal.h"
+#include "align4.h"
 
 
 struct screen screen;
@@ -65,9 +66,9 @@ static inline void render_line(uint8_t *data)
 	    
 	    // Первые 3 символа (на экране у нас место для 80 символов, поэтому первый пропускаем)
 	    z1=0;
-	    z2=z[*t++];
-	    z3=z[*t++];
-	    z4=z[*t++];
+	    z2=r_u8(&z[*t++]);
+	    z3=r_u8(&z[*t++]);
+	    z4=r_u8(&z[*t++]);
 	    data[(x++) ^ 0x03]=(z1 << 2) | (z2 >> 4);
 	    data[(x++) ^ 0x03]=(z2 << 4) | (z3 >> 2);
 	    data[(x++) ^ 0x03]=(z3 << 6) | z4;
@@ -75,19 +76,19 @@ static inline void render_line(uint8_t *data)
 	    // Средние 72 символа
 	    for (i=0; i<18; i++)
 	    {
-		z1=z[*t++];
-		z2=z[*t++];
-		z3=z[*t++];
-		z4=z[*t++];
+		z1=r_u8(&z[*t++]);
+		z2=r_u8(&z[*t++]);
+		z3=r_u8(&z[*t++]);
+		z4=r_u8(&z[*t++]);
 		data[(x++) ^ 0x03]=(z1 << 2) | (z2 >> 4);
 		data[(x++) ^ 0x03]=(z2 << 4) | (z3 >> 2);
 		data[(x++) ^ 0x03]=(z3 << 6) | z4;
 	    }
 	    
 	    // Последние 3 символа
-	    z1=z[*t++];
-	    z2=z[*t++];
-	    z3=z[*t++];
+	    z1=r_u8(&z[*t++]);
+	    z2=r_u8(&z[*t++]);
+	    z3=r_u8(&z[*t++]);
 	    z4=0;
 	    data[(x++) ^ 0x03]=(z1 << 2) | (z2 >> 4);
 	    data[(x++) ^ 0x03]=(z2 << 4) | (z3 >> 2);

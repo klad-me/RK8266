@@ -1,4 +1,5 @@
 #include "ets.h"
+#include "board.h"
 
 
 extern uint32_t _bss_start[], _bss_end[];
@@ -8,7 +9,9 @@ extern void main_program(void);
 static void my_putc1(char c)
 {
     // У UART есть FIFO на 128 байт, а ждать нам при эмуляции совсем не нужно
+#ifdef DO_DEBUG
     WRITE_PERI_REG(/*UART_FIFO(0)*/ 0x60000000, c);
+#endif
 }
 
 

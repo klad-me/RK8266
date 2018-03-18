@@ -3,7 +3,7 @@
 #include "pin_mux_register.h"
 
 
-const uint32_t gpio_mux[] =
+const uint32_t AT_IRAM gpio_mux[] =
 {
     PERIPHS_IO_MUX_GPIO0_U, FUNC_GPIO0,
     PERIPHS_IO_MUX_U0TXD_U, FUNC_GPIO1,

@@ -3,6 +3,7 @@
 #include "vg75.h"
 #include "vv55_i.h"
 #include "rom.h"
+#include "align4.h"
 
 
 uint8_t RAM[0x8000];
@@ -57,7 +58,7 @@ int i8080_hal_memory_read_byte(int addr)
 	    
 	    case 0xF:
 		// ðúõ
-		return ROM[addr & 0x07ff];
+		return r_u8(&ROM[addr & 0x07ff]);
 	    
 	    default:
 		return 0x00;

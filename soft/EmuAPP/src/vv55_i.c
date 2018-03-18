@@ -133,8 +133,8 @@ uint8_t vv55_i_R(uint8_t A)
 	    break;
 	
 	case 2:
-	    // Канал C: модификаторы
-	    return mods;
+	    // Канал C: модификаторы + магнитофон
+	    return (mods & 0xEF) | (tape_out() ? 0x10 : 0x00);
 	
 	case 3:
 	default:

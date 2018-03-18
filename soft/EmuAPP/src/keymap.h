@@ -11,7 +11,7 @@ extern "C" {
 
 
 void keymap_init(void);
-bool keymap_periodic(void);
+uint16_t keymap_periodic(void);
 
 
 #ifdef __cplusplus

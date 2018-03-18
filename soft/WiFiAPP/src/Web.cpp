@@ -109,7 +109,7 @@ const char* Web::getDir(uint32_t *dataPtr, int *size)
     dataSize+=35;
     
     // Создаем данные
-    char *data=new char[dataSize];
+    char *data=new char[dataSize+8];
     if (!data) return 0;
     
     // Заполняем

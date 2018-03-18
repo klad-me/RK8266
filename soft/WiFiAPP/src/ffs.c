@@ -64,18 +64,21 @@ static void f_init(void)
 
 static void f_read(uint32_t pos, uint8_t *data, int size)
 {
+    ets_printf("f_read(0x%05X, %d)\n", pos, size);
     spi_flash_read(FFS_AT+pos, (uint32*)data, size);
 }
 
 
 static void f_write(uint32_t pos, const uint8_t *data, int size)
 {
+    ets_printf("f_write(0x%05X, %d)\n", pos, size);
     spi_flash_write(FFS_AT+pos, (const uint32*)data, size);
 }
 
 
 static void f_erase(uint32_t pos)
 {
+    ets_printf("f_erase(0x%05X)\n", pos);
     spi_flash_erase_sector((FFS_AT+pos) / 4096);
 }
 
@@ -265,6 +268,7 @@ int16_t ffs_create(const char *fname, uint8_t type, uint16_t size)
 void ffs_writeData(uint16_t n, uint16_t offs, const uint8_t *data, uint16_t size)
 {
     // Записываем с предварительным стиранием
+    size=(size+3) & ~0x03;
     while (size > 0)
     {
 	// Получаем адрес

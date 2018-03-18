@@ -270,7 +270,7 @@ static uns8 work8;
 static int index;
 static uns8 carry, add;
 
-int parity_table[] = {
+uint8_t parity_table[] = {
     1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
     0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
     0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
@@ -289,8 +289,8 @@ int parity_table[] = {
     1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
 };
 
-int half_carry_table[] = { 0, 0, 1, 0, 1, 0, 1, 1 };
-int sub_half_carry_table[] = { 0, 1, 1, 1, 0, 0, 0, 1 };
+uint8_t half_carry_table[] = { 0, 0, 1, 0, 1, 0, 1, 1 };
+uint8_t sub_half_carry_table[] = { 0, 1, 1, 1, 0, 0, 0, 1 };
 
 void i8080_init(void) {
     C_FLAG = 0;

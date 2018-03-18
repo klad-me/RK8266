@@ -2,10 +2,7 @@
 #define MENU_H
 
 
-#include "pt.h"
-
-
-PT_THREAD(menu(struct pt *pt));
+void menu(void);
 
 
 #endif

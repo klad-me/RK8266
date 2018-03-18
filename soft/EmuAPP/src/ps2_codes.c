@@ -1,5 +1,9 @@
 #include "ps2_codes.h"
 
+#include "ets.h"
+#include "ps2.h"
+#include "align4.h"
+
 
 struct map
 {
@@ -7,7 +11,7 @@ struct map
     char sym;
 };
 
-static struct map kmap[] =
+static struct map AT_IRAM kmap[] =
 {
     { PS2_A,		'A' },
     { PS2_B,		'B' },
@@ -85,14 +89,17 @@ static struct map kmap[] =
 };
 
 
-char ps2_sym(uint16_t code)
+char ps2_sym(void)
 {
+    uint16_t code=ps2_read();
+    
     if (code==0) return 0;
     
     uint8_t n=0;
-    while (kmap[n].ps2)
+    uint16_t c;
+    while ( (c=r_u16(&kmap[n].ps2)) != 0 )
     {
-	if (kmap[n].ps2==code) return kmap[n].sym;
+	if (c==code) return r_u8((const uint8_t*)&kmap[n].sym);
 	n++;
     }
     return 0;
