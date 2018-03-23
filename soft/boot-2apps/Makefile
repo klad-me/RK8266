@@ -14,7 +14,9 @@
 
 C_SOURCES+= \
 	src/main.c		\
-	src/check_image.c
+	src/check_image.c	\
+	src/crc16.c		\
+	src/fw_update.c
 
 ##############################################################################
 

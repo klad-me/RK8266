@@ -5,7 +5,8 @@
 #include <inttypes.h>
 
 
-extern const uint8_t zkg[1024];
+extern uint8_t zkg[1024];
+extern const uint8_t zkg_rom[1024];	// AT_IRAM
 
 
 #endif

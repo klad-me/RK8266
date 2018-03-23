@@ -15,11 +15,15 @@ struct screen
     uint8_t screen_w, screen_h, char_h;
     uint8_t cursor_x, cursor_y, cursor_type;
     uint8_t *vram;
+    char overlay[78];
+    uint16_t overlay_timer;
 };
 extern struct screen screen;
 
 
 void vg75_init(uint8_t *vram);
+
+void vg75_overlay(const char *str);
 
 void vg75_W(uint8_t A, uint8_t value);
 uint8_t vg75_R(uint8_t A);

@@ -34,6 +34,8 @@
 #include "i8080.h"
 #include "i8080_hal.h"
 #include <inttypes.h>
+#include <ets.h>
+
 
 #define RD_BYTE(addr) i8080_hal_memory_read_byte(addr)
 #define RD_WORD(addr) i8080_hal_memory_read_word(addr)
@@ -304,6 +306,25 @@ void i8080_init(void) {
 
     PC = 0xF800;
 }
+
+
+int i8080_state_size(void)
+{
+    return sizeof(cpu);
+}
+
+
+void i8080_state_save(unsigned char *buf)
+{
+    ets_memcpy(buf, &cpu, sizeof(cpu));
+}
+
+
+void i8080_state_load(const unsigned char *buf)
+{
+    ets_memcpy(&cpu, buf, sizeof(cpu));
+}
+
 
 static void i8080_store_flags(void) {
     if (S_FLAG) F |= F_NEG;      else F &= ~F_NEG;

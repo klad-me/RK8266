@@ -255,6 +255,7 @@ void ui_start(void)
     screen.cursor_y=0;
     screen.cursor_type=0;
     screen.vram=(uint8_t*)ui_scr;
+    screen.overlay_timer=0;
     
     // Очищаем экран
     ui_clear();
@@ -264,6 +265,7 @@ void ui_start(void)
 void ui_stop(void)
 {
     // Возвращаем экран на место
+    save.overlay_timer=0;
     screen=save;
 }
 

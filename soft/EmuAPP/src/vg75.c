@@ -4,6 +4,7 @@
 #include "zkg.h"
 #include "i8080_hal.h"
 #include "align4.h"
+#include "xlat.h"
 
 
 struct screen screen;
@@ -45,6 +46,9 @@ static uint8_t blink=0;
 static uint8_t *txt;
 
 
+#define OVERLAY_Y	3
+
+
 static inline void render_line(uint8_t *data)
 {
     if ( /*(line < 12) ||*/ (y >= screen.screen_h) )
@@ -64,11 +68,16 @@ static inline void render_line(uint8_t *data)
 	    uint8_t z1,z2,z3,z4;
 	    uint8_t *t=txt;
 	    
+	    // Если оверлей активен - рисуем его
+	    if ( (screen.overlay_timer > 0) &&
+		 (y == OVERLAY_Y) )
+		t=(uint8_t*)screen.overlay;
+	    
 	    // Первые 3 символа (на экране у нас место для 80 символов, поэтому первый пропускаем)
 	    z1=0;
-	    z2=r_u8(&z[*t++]);
-	    z3=r_u8(&z[*t++]);
-	    z4=r_u8(&z[*t++]);
+	    z2=z[*t++];
+	    z3=z[*t++];
+	    z4=z[*t++];
 	    data[(x++) ^ 0x03]=(z1 << 2) | (z2 >> 4);
 	    data[(x++) ^ 0x03]=(z2 << 4) | (z3 >> 2);
 	    data[(x++) ^ 0x03]=(z3 << 6) | z4;
@@ -76,19 +85,19 @@ static inline void render_line(uint8_t *data)
 	    // Средние 72 символа
 	    for (i=0; i<18; i++)
 	    {
-		z1=r_u8(&z[*t++]);
-		z2=r_u8(&z[*t++]);
-		z3=r_u8(&z[*t++]);
-		z4=r_u8(&z[*t++]);
+		z1=z[*t++];
+		z2=z[*t++];
+		z3=z[*t++];
+		z4=z[*t++];
 		data[(x++) ^ 0x03]=(z1 << 2) | (z2 >> 4);
 		data[(x++) ^ 0x03]=(z2 << 4) | (z3 >> 2);
 		data[(x++) ^ 0x03]=(z3 << 6) | z4;
 	    }
 	    
 	    // Последние 3 символа
-	    z1=r_u8(&z[*t++]);
-	    z2=r_u8(&z[*t++]);
-	    z3=r_u8(&z[*t++]);
+	    z1=z[*t++];
+	    z2=z[*t++];
+	    z3=z[*t++];
 	    z4=0;
 	    data[(x++) ^ 0x03]=(z1 << 2) | (z2 >> 4);
 	    data[(x++) ^ 0x03]=(z2 << 4) | (z3 >> 2);
@@ -119,6 +128,14 @@ static inline void render_line(uint8_t *data)
 			data[(p+2) ^ 0x03]^=0x3F;
 			break;
 		}
+	    }
+	    
+	    // Оверлей рисуем в инверсии
+	    if ( (screen.overlay_timer > 0) &&
+		 (y == OVERLAY_Y) )
+	    {
+		for (x=16; x<76; x++)
+		    data[x ^ 0x03]^=0xFF;
 	    }
 	} else
 	{
@@ -152,6 +169,10 @@ void tv_data_field(void)
     
     // Мигание курсора
     blink++;
+    
+    // Таймер оверлея
+    if (screen.overlay_timer > 0)
+	screen.overlay_timer--;
 }
 
 
@@ -175,12 +196,38 @@ void vg75_init(uint8_t *vram)
     screen.cursor_y=0;
     screen.cursor_type=0;
     screen.vram=vram;
+    screen.overlay_timer=0;
     
     txt=vram;
     
     // Копируем в буфера пустую строку (в ней синхра)
     for (i=0; i<N_BUFS; i++)
 	ets_memcpy(buf[i], tv_empty_line, 80);
+    
+    // Инитим знакогенератор в ОЗУ
+    ets_memcpy(zkg, zkg_rom, 1024);
+}
+
+
+void vg75_overlay(const char *str)
+{
+    uint8_t l=ets_strlen(str);
+    uint8_t p=0;
+    
+    // Пустое место слева
+    while (p < (78-l)/2)
+	screen.overlay[p++]=0;
+    
+    // Сама строка посередине
+    while (*str)
+	screen.overlay[p++]=r_u8(&xlat[(uint8_t)*str++]);
+    
+    // Пустое место справа
+    while (p < 78)
+	screen.overlay[p++]=0;
+    
+    // Таймер на 1 секунду
+    screen.overlay_timer=50;	// 50 полей - 1 секунда
 }
 
 

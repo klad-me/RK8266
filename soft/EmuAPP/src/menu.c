@@ -7,6 +7,7 @@
 #include "ffs.h"
 #include "files.h"
 #include "tape.h"
+#include "zkg.h"
 
 
 static bool menu_load(void)
@@ -92,6 +93,8 @@ again:
 	"\\       - Home\n"
 	"στς     - End/Delete\n"
 	"ας2     - Alt\n"
+	"\n"
+	"τυςβο   - Scroll Lock\n"
 	);
     switch (ui_select(5))
     {
@@ -105,6 +108,7 @@ again:
 	    ets_memset(i8080_hal_memory(), 0x00, 0x8000);
 	    i8080_init();
 	    i8080_jump(0xF800);
+	    ets_memcpy(zkg, zkg_rom, 1024);
 	    break;
 	
 	case 2:

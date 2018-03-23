@@ -1,6 +1,7 @@
 #include "i8080_hal.h"
 
 #include "vg75.h"
+#include "zkg.h"
 #include "vv55_i.h"
 #include "rom.h"
 #include "align4.h"
@@ -98,6 +99,18 @@ void i8080_hal_memory_write_byte(int addr, int byte)
 	    case 0xE:
 		// ИК57
 		ik57_W(addr & 0x0f, byte);
+		break;
+	    
+	    case 0xF:
+		// Знакогенератор
+		{
+		    addr&=0x3ff;
+		    
+		    // Меняем адресацию
+		    uint8_t c=(addr >> 3);
+		    uint8_t l=(addr & 0x07);
+		    zkg[ (l<<7) + c ]=(byte ^ 0xff) & 0x3F;	// записываем с инверсией
+		}
 		break;
 	}
     }

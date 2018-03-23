@@ -6,6 +6,8 @@
 #include "ui.h"
 #include "vg75.h"
 #include "ps2.h"
+#include "vg75.h"
+#include "xprintf.h"
 
 
 #define IN_SYNC_COUNT	16
@@ -34,6 +36,7 @@ static struct out
     uint16_t pos;
     uint32_t prev_cycles;
     uint32_t dataPtr;
+    uint16_t dataPos;
     uint16_t dataSize;
     uint16_t sync;
     uint8_t  byte, bit;
@@ -55,6 +58,7 @@ void tape_init(void)
     
     out.prev_cycles=0;
     out.dataPtr=0;
+    out.dataPos=0;
     out.dataSize=0;
     out.sync=0;
     out.byte=0;
@@ -73,6 +77,14 @@ static void tape_in_bit(void)
     
     if (in.bit_cnt==8)
     {
+	// Выводим сообщение на экран
+	if ((in.size & 31)==0)
+	{
+	    char str[32];
+	    xsprintf(str, "Запись на магнитофон:  %d...", in.size);
+	    vg75_overlay(str);
+	}
+	
 	// Принят байт - кладем в буфер
 	if (in.size < IN_BUF_SIZE)
 	    in.buf[in.size++]=in.byte;
@@ -102,6 +114,13 @@ void tape_in(void)
     if (in.sync > 0)
     {
 	// Синхронизация
+	if ((in.sync & 31)==0)
+	{
+	    char str[32];
+	    xsprintf(str, "Загрузка с магнитофона...", in.size);
+	    vg75_overlay(str);
+	}
+	
 	if ( (T < in.period/2) || (T > in.period+in.period/2) )
 	{
 	    // Большая ошибка
@@ -156,6 +175,7 @@ void tape_in(void)
 	    }
 	} else
 	{
+	    // Идет прием
 	    if (d)
 	    {
 		// Длинный - смена значения
@@ -202,6 +222,11 @@ bool tape_out(void)
 	if (out.sync > 0)
 	{
 	    // Синхронизация
+	    if ((out.sync & 31)==0)
+	    {
+		vg75_overlay("Загрузка с магнитофона...");
+	    }
+	    
 	    //ets_printf("TAPE: sync %d\n", out.sync);
 	    out.byte=0x55;
 	    out.bit=0x80;
@@ -209,9 +234,17 @@ bool tape_out(void)
 	} else
 	{
 	    // Данные
-	    if (out.dataSize==0)
+	    if ((out.dataPos & 31)==0)
+	    {
+		char str[48];
+		xsprintf(str, "Загрузка с магнитофона:  %d/%d...", out.dataPos, out.dataSize);
+		vg75_overlay(str);
+	    }
+	    
+	    if (out.dataPos >= out.dataSize)
 	    {
 		// Конец данных
+		vg75_overlay("Загрузка с магнитофона завершена.");
 		ets_printf("TAPE: end\n");
 		out.start=false;
 		return false;
@@ -221,7 +254,7 @@ bool tape_out(void)
 	    if (out.pos >= OUT_BUF_SIZE)
 	    {
 		// Надо подгрузить данные из флэша в буфер
-		uint16_t s=out.dataSize;
+		uint16_t s=out.dataSize - out.dataPos;
 		if (s > OUT_BUF_SIZE)
 		    s=OUT_BUF_SIZE; else
 		    s=(s+3) & ~0x03;
@@ -234,7 +267,7 @@ bool tape_out(void)
 	    // Берем следующий байт из буфера
 	    out.byte=out.buf[out.pos++];
 	    out.bit=0x80;
-	    out.dataSize--;
+	    out.dataPos++;
 	    //ets_printf("TAPE: data=0x%02X\n", out.byte);
 	}
     }
@@ -304,6 +337,7 @@ void tape_load(void)
     
     // Начинаем чтение
     out.dataPtr=ffs_flash_addr(n);
+    out.dataPos=0;
     out.dataSize=fat[n].size;
     out.pos=OUT_BUF_SIZE;
     out.sync=OUT_SYNC_COUNT;

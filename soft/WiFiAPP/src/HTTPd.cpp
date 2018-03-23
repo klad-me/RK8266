@@ -176,6 +176,11 @@ again:
         		    // Обновление файлов
         		    put.addr=FLASH_HTTP_DATA | 0x80000000;
         		} else
+        		if (! os_strcmp(put.path, "/firmware.bin"))
+        		{
+        		    // Обновление прошивки
+        		    put.addr=0x80000 | 0x80000000;
+        		} else
         		if (handler)
         		{
         		    // Обработчик

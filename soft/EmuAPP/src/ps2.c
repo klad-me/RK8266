@@ -18,7 +18,7 @@ static uint8_t rxq_head=0, rxq_tail=0;
 
 static uint16_t tx=0, txbit=0;
 static uint8_t led_status;
-static bool ack=0;
+static bool ack=0, resend=0, bat=0;
 
 static struct pt pt_task;
 
@@ -93,6 +93,8 @@ static void gpio_int(void *arg)
 		    if (code==0xE1) was_E1=1; else
 		    if (code==0xF0) was_F0=1; else
 		    if (code==0xFA) ack=1; else
+		    if (code==0xFE) resend=1; else
+		    if (code==0xAA) bat=1; else
 		    {
 			uint16_t code16=code;
 			
@@ -144,6 +146,8 @@ uint16_t ps2_read(void)
     if (rxq_head == rxq_tail) return 0;
     uint16_t d=rxq[rxq_tail];
     rxq_tail=(rxq_tail + 1) & (RXQ_SIZE-1);
+    //ets_printf("PS2: 0x%04X\n", d);
+    led_status^=0x02;
     return d;
 }
 
@@ -171,17 +175,21 @@ static PT_THREAD(task(struct pt *pt))
     static uint8_t last_led=0x00;
     static uint8_t l;
     
+#warning TODO: надо сделать буфер для передачи в клавиатуру и обрабатывать resend итд
     PT_BEGIN(pt);
 	while (1)
 	{
-	    if (last_led == led_status)
+	    if ( (last_led == led_status) && (! bat) )
 	    {
 		// Лампочки не изменились
 		PT_YIELD(pt);
 		continue;
 	    }
+	    bat=0;
 	    
+	    //ets_printf("PS2: sending leds 0x%02X\n", led_status);
 	    
+resend1:
 	    // PS2_CLK вниз
 	    gpio_off(PS2_CLK);
 	    gpio_init_output(PS2_CLK);
@@ -194,6 +202,7 @@ static PT_THREAD(task(struct pt *pt))
 	    
 	    // Отправляем команду "Set/Reset LEDs"
 	    ack=0;
+	    resend=0;
 	    start_tx(0xED);
 	    
 	    // Отпускаем PS2_CLK
@@ -203,10 +212,11 @@ static PT_THREAD(task(struct pt *pt))
 	    PT_SLEEP(5000);
 	    
 	    // Проверим подтверждение
+	    if (resend) goto resend1;
 	    if (! ack) continue;
 	    
 	    
-	    
+resend2:
 	    // PS2_CLK вниз
 	    gpio_off(PS2_CLK);
 	    gpio_init_output(PS2_CLK);
@@ -219,6 +229,7 @@ static PT_THREAD(task(struct pt *pt))
 	    
 	    // Отправляем лампочки
 	    ack=0;
+	    resend=0;
 	    l=led_status;
 	    start_tx(l);
 	    
@@ -229,6 +240,7 @@ static PT_THREAD(task(struct pt *pt))
 	    PT_SLEEP(5000);
 	    
 	    // Проверим подтверждение
+	    if (resend) goto resend2;
 	    if (! ack) continue;
 	    
 	    // Сохраняем отправленное состояние

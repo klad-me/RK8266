@@ -43,6 +43,10 @@ extern "C" {
 extern void i8080_init(void);
 extern int i8080_instruction(void);
 
+extern int i8080_state_size(void);
+extern void i8080_state_save(unsigned char *buf);
+extern void i8080_state_load(const unsigned char *buf);
+
 extern void i8080_jump(int addr);
 extern int i8080_pc(void);
 
