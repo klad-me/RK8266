@@ -25,122 +25,200 @@ static struct
 
 
 #define N_BUFS	8
-static uint8_t buf[N_BUFS][80];
+static uint8_t buf[N_BUFS][64];
 static volatile uint8_t buf_n=0;
 
 
-static inline void empty_line(uint8_t *data)
-{
-    // Пустая линия
-    uint8_t i, x=16;
-    for (i=0; i<64; i++)
-    {
-	data[(x++) ^ 0x03]=0x00;
-    }
-}
+#define empty_line(data)	do { ets_memset((data)+4, 0x00, 60); } while(0)
+
+
+#define HIGHLIGHT	0x01
+#define BLINK		0x02
+#define GPA0		0x04
+#define GPA1		0x08
+#define REVERSE		0x10
+#define UNDERLINE	0x20
 
 
 static uint16_t line=0;
 static uint8_t l=0, y=0;
-static uint8_t blink=0;
+static uint8_t blink=0, flags=0;
 static uint8_t *txt;
+static uint8_t line_text[100], line_attr[100];	// 100 для возможности сдвига изображения вправо
+static uint8_t end_of_screen=0;
 
 
 #define OVERLAY_Y	3
 
 
+static void next_line(void)
+{
+    uint8_t x=0, o=0;
+    uint8_t l=screen.screen_w;	// кол-во символов в строке
+    
+    // Если конец экрана - дальше не обрабатываем
+    if (end_of_screen) goto line_done;
+    
+    // Отрабатываем сдвиг экрана
+    while (x < screen.x_offset)
+    {
+	line_text[x]=0;
+	line_attr[x]=flags;
+	x++;
+    }
+    
+    while (l--)
+    {
+	// Получаем следующий символ
+	uint8_t c=txt[o++];
+	
+	// Проверяем на спец.коды
+	if (! (c & 0x80))
+	{
+	    // Обычный символ из знакогенератора
+	    line_text[x]=( (!(flags & BLINK)) || (blink & 16) ) ? c : 0;
+	    line_attr[x]=flags;
+	    x++;
+	} else
+	{
+	    // Управляющий код, псевдографика или аттрибут
+	    if (c & 0x40)
+	    {
+		// Управлящий код или псевдографика
+		if ( (c & 0xFC) == 0xF0 )
+		{
+		    // Управляющий код
+		    switch (c & 0x03)
+		    {
+			case 0:
+			    // End of Row
+			    o=screen.screen_w;
+			    goto line_done;
+			
+			case 1:
+			    // End of Row - Stop DMA
+			    if ( ((o & (screen.dma_burst-1))==0) ||
+				 (o==screen.screen_w) )
+			    {
+				// Конец пачки DMA или конец строки - добавлять символ не надо
+				goto line_done;
+			    } else
+			    {
+				// Надо пропустить один символ
+				o++;
+				goto line_done;
+			    }
+			
+			case 2:
+			case 3:
+			    // End of Screen
+			    // End of Screen - Stop DMA
+			    end_of_screen=1;
+			    goto line_done;
+		    }
+		} else
+		{
+		    // Псевдографика
+		    line_text[x]=( (!(c & BLINK)) || (blink & 16) ) ? (((c >> 2) & 0x0F) | 0x80) : 0;
+		    line_attr[x]=(flags & 0xFC) | (c & 0x03);	// используем общие аттрибуты, но заменяем в них B и H
+		    x++;
+		}
+	    } else
+	    {
+		// Аттрибут
+		flags=c & 0x3F;
+		if (screen.attr_visible)
+		{
+		    // Аттрибут видимый - отображаем как символ 0x00
+		    line_text[x]=0x00;
+		    line_attr[x]=flags;
+		    x++;
+		}
+	    }
+	}
+    }
+    
+line_done:
+    // Дозаполняем остаток строки
+    while (x < 80)
+    {
+	line_text[x]=0;
+	line_attr[x]=flags;
+	x++;
+    }
+    
+    // Сдвигаем указатель на видеопамять
+    txt+=o;
+    
+    // Рисуем курсор
+    if ( (y == screen.cursor_y) && (screen.cursor_x < 80) && ( (blink & 16) || ((screen.cursor_type & 0x02)!=0) ) )
+    {
+	// Видимый
+	if (screen.cursor_type & 0x01)
+	{
+	    // Штрих
+	    line_attr[screen.x_offset+screen.cursor_x]^=UNDERLINE;
+	} else
+	{
+	    // Блок
+	    line_attr[screen.x_offset+screen.cursor_x]^=REVERSE;
+	}
+    }
+    
+    
+    // Если оверлей активен - рисуем его
+    if ( (screen.overlay_timer > 0) &&
+	 (y == OVERLAY_Y) )
+    {
+	ets_memcpy(line_text+screen.x_offset+8, screen.overlay, 64);
+	ets_memset(line_attr+screen.x_offset+8, REVERSE, 64);
+    }
+    
+    // Пустые символы в начале и конце строки, чтобы не портить синхронизацию
+    line_text[0]=line_text[1]=line_text[78]=line_text[79]=0;
+    line_attr[0]=line_attr[1]=line_attr[78]=line_attr[79]=0;
+}
+
+
 static inline void render_line(uint8_t *data)
 {
-    if ( /*(line < 12) ||*/ (y >= screen.screen_h) )
+    if ( (line < screen.y_offset) || (y >= screen.screen_h) )
     {
 	// Пустые строки в начале и в конце кадра
 	empty_line(data);
     } else
     {
-	// Проверим - видимая ли это строка
-	if (l < 8)
+	// Видимая линия
+	const uint8_t *z=zkg+( ((uint16_t)l) << 7);
+	const uint8_t *g=zkg_graph+( ((uint16_t)l) << 4);
+	uint8_t i, x=4, o=0;
+	uint8_t z1,z2,z3,z4;
+	
+	// Рисуем 80 символов из подготовленного буфера (пустые символы в начале и в конце уже лежат в буфере)
+	for (i=0; i<20; i++)
 	{
-	    // Видимая линия
+	    uint8_t c, a;
 	    
-	    // Получаем строку текста, всегда отображаем 78 символов
-	    const uint8_t *z=zkg+( ((uint16_t)l) << 7);
-	    uint8_t i, x=16;
-	    uint8_t z1,z2,z3,z4;
-	    uint8_t *t=txt;
+#define SYM(zz) \
+	    do { \
+		c=line_text[o];	\
+		a=line_attr[o];	\
+		o++;	\
+		if (l & 0x08) zz=0x00; else	\
+		if (c & 0x80)	\
+		    zz=r_u8(&g[c & 0x7F]); else	\
+		    zz=z[c];	\
+		if ( (a & UNDERLINE) && (l==screen.underline_y) ) zz|=0x3F;	\
+		if (a & REVERSE) zz^=0x3F;	\
+	    } while(0)
 	    
-	    // Если оверлей активен - рисуем его
-	    if ( (screen.overlay_timer > 0) &&
-		 (y == OVERLAY_Y) )
-		t=(uint8_t*)screen.overlay;
-	    
-	    // Первые 3 символа (на экране у нас место для 80 символов, поэтому первый пропускаем)
-	    z1=0;
-	    z2=z[*t++];
-	    z3=z[*t++];
-	    z4=z[*t++];
+	    SYM(z1);
+	    SYM(z2);
+	    SYM(z3);
+	    SYM(z4);
 	    data[(x++) ^ 0x03]=(z1 << 2) | (z2 >> 4);
 	    data[(x++) ^ 0x03]=(z2 << 4) | (z3 >> 2);
 	    data[(x++) ^ 0x03]=(z3 << 6) | z4;
-	    
-	    // Средние 72 символа
-	    for (i=0; i<18; i++)
-	    {
-		z1=z[*t++];
-		z2=z[*t++];
-		z3=z[*t++];
-		z4=z[*t++];
-		data[(x++) ^ 0x03]=(z1 << 2) | (z2 >> 4);
-		data[(x++) ^ 0x03]=(z2 << 4) | (z3 >> 2);
-		data[(x++) ^ 0x03]=(z3 << 6) | z4;
-	    }
-	    
-	    // Последние 3 символа
-	    z1=z[*t++];
-	    z2=z[*t++];
-	    z3=z[*t++];
-	    z4=0;
-	    data[(x++) ^ 0x03]=(z1 << 2) | (z2 >> 4);
-	    data[(x++) ^ 0x03]=(z2 << 4) | (z3 >> 2);
-	    data[(x++) ^ 0x03]=(z3 << 6) | z4;
-	    
-	    // Рисуем курсор
-	    if ( (y == screen.cursor_y) && ( ((screen.cursor_type & 0x01)==0) || (l==7) ) && ( (blink & 16) || ((screen.cursor_type & 0x02)!=0) ) )
-	    {
-		uint8_t cx=screen.cursor_x+1;	// т.к. у нас 80 символов, 1 символ получается пустой
-		uint8_t p=16+(cx >> 2) * 3;	// позиция в буфере
-		switch (cx & 0x03)
-		{
-		    case 0:
-			data[(p+0) ^ 0x03]^=0xFC;
-			break;
-		    
-		    case 1:
-			data[(p+0) ^ 0x03]^=0x03;
-			data[(p+1) ^ 0x03]^=0xF0;
-			break;
-		    
-		    case 2:
-			data[(p+1) ^ 0x03]^=0x0F;
-			data[(p+2) ^ 0x03]^=0xC0;
-			break;
-		    
-		    case 3:
-			data[(p+2) ^ 0x03]^=0x3F;
-			break;
-		}
-	    }
-	    
-	    // Оверлей рисуем в инверсии
-	    if ( (screen.overlay_timer > 0) &&
-		 (y == OVERLAY_Y) )
-	    {
-		for (x=16; x<76; x++)
-		    data[x ^ 0x03]^=0xFF;
-	    }
-	} else
-	{
-	    // Пустая линия
-	    empty_line(data);
 	}
 	
 	// Следующий номер линии в строке
@@ -149,8 +227,8 @@ static inline void render_line(uint8_t *data)
 	{
 	    // Следующая строка текста
 	    l=0;
-	    txt+=screen.screen_w;
 	    y++;
+	    next_line();
 	}
     }
     
@@ -173,6 +251,13 @@ void tv_data_field(void)
     // Таймер оверлея
     if (screen.overlay_timer > 0)
 	screen.overlay_timer--;
+    
+    // Флаги
+    end_of_screen=0;
+    flags=0;
+    
+    // Получаем первую строку
+    next_line();
 }
 
 
@@ -191,10 +276,15 @@ void vg75_init(uint8_t *vram)
     
     screen.screen_w=78;
     screen.screen_h=30;
+    screen.underline_y=7;
     screen.char_h=8;
+    screen.attr_visible=0;
+    screen.x_offset=4;
+    screen.y_offset=16;
     screen.cursor_x=0;
     screen.cursor_y=0;
     screen.cursor_type=0;
+    screen.dma_burst=1;
     screen.vram=vram;
     screen.overlay_timer=0;
     
@@ -202,7 +292,7 @@ void vg75_init(uint8_t *vram)
     
     // Копируем в буфера пустую строку (в ней синхра)
     for (i=0; i<N_BUFS; i++)
-	ets_memcpy(buf[i], tv_empty_line, 80);
+	ets_memcpy(buf[i], tv_empty_line, 64);
     
     // Инитим знакогенератор в ОЗУ
     ets_memcpy(zkg, zkg_rom, 1024);
@@ -215,7 +305,7 @@ void vg75_overlay(const char *str)
     uint8_t p=0;
     
     // Пустое место слева
-    while (p < (78-l)/2)
+    while (p < (64-l)/2)
 	screen.overlay[p++]=0;
     
     // Сама строка посередине
@@ -223,7 +313,7 @@ void vg75_overlay(const char *str)
 	screen.overlay[p++]=r_u8(&xlat[(uint8_t)*str++]);
     
     // Пустое место справа
-    while (p < 78)
+    while (p < 64)
 	screen.overlay[p++]=0;
     
     // Таймер на 1 секунду
@@ -238,6 +328,12 @@ void vg75_W(uint8_t A, uint8_t value)
 	// Команда
 	vg75.cmd=value;
 	vg75.param_n=0;
+	
+	if ( (value & 0xE0) == 0x20 )
+	{
+	    // Включение отображения
+	    screen.dma_burst=(1 << (value & 0x03));
+	}
     } else
     {
 	// Параметр
@@ -249,8 +345,10 @@ void vg75_W(uint8_t A, uint8_t value)
 	    // Сброс
 	    screen.screen_w=(vg75.param[0] & 0x7F)+1;	// число символов в строке -1
 	    screen.screen_h=(vg75.param[1] & 0x3F)+1;	// число строк на экране -1
+	    screen.underline_y=(vg75.param[2] >> 4);	// позиция подчеркивания
 	    screen.char_h=(vg75.param[2] & 0x0F)+1;	// высота символа в пикселах -1
 	    screen.cursor_type=(vg75.param[3] >> 4) & 0x03;	// форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
+	    screen.attr_visible=((vg75.param[3] & 0x40) != 0);	// видимость аттрибутов (если 1, то аттрибут будет отображен пустым местом, если 0 - будет пропущен)
 	    if (screen.screen_w > 78) screen.screen_w=78;
 	    if (screen.screen_h > 38) screen.screen_h=38;
 	    //ets_printf("VG75: W=%d H=%d CH=%d CUR=%d\n", screen.screen_w, screen.screen_h, screen.char_h, screen.cursor_type);

@@ -51,10 +51,19 @@ int read(uint8_t *buf, const char *fname, int max_size)
 }
 
 
+#define FW	"0x00000.bin"
+#define UPDATE	"fota.bin"
+
+
 int main()
 {
+    FILE *f;
+    
     // Очищаем буфер
     memset(data, 0x00, sizeof(data));
+    
+    // Читаем загрузчик
+    if (! read(data+0x00000, "../boot-2apps/out/boot.bin", 0x1000)) return -1;
     
     // Читаем прошивку эмулятора
     if (! read(data+0x01000, "../EmuAPP/out/emu-0x00000.bin", 0xF000)) return -1;
@@ -66,7 +75,19 @@ int main()
     if (! read(data+0x70000, "../WiFiAPP/httpfs/httpfs.bin", 0xC000)) return -1;
     
     
+    // Сохраняем прошивку для программатора
+    f=fopen(FW, "wb");
+    if (!f)
+    {
+	perror(FW);
+	return -1;
+    }
+    fwrite(data, 1, sizeof(data), f);
+    fclose(f);
+    
+    
     // Заполняем заголовок
+    memset(data, 0x00, 0x1000);	// вместо загрузчика будет заголовок для обновления
     memcpy(hdr->magic, "FWUPDATE", 8);
     hdr->size4k=0x7B;
     hdr->reserved1=0;
@@ -80,11 +101,11 @@ int main()
 	crcdata[i]=CRC16(0xFFFF, data+0x1000+i*0x1000, 0x1000);
     }
     
-    // Сохраняем
-    FILE *f=fopen("firmware.bin", "wb");
+    // Сохраняем обновление
+    f=fopen(UPDATE, "wb");
     if (!f)
     {
-	perror("firmware.bin");
+	perror(UPDATE);
 	return -1;
     }
     fwrite(data, 1, sizeof(data), f);

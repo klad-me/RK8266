@@ -2,6 +2,7 @@
 <head> 
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" /> 
     <title>Программы</title>
+    <link rel="stylesheet" href="styles.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 </head> 
 <body bgcolor="black" alink="red" link="white" vlink="white" text="white" onload=""><font face="sans-serif"> 
@@ -88,6 +89,42 @@
                 	    },
 		});
 	}
+	
+	
+	function uploadFOTA(event)
+	{
+	    if (! confirm('Внимание !!!\nПри обновлении прошивки теряются все данные Flash-диска !\n\nПодтвердите операцию обновления.'))
+		return;
+	    
+	    var f = event.target.files[0];
+	    $.ajax({
+                url: "/firmware.bin",
+    		type: "PUT",
+    		data: f,
+    		processData: false,
+		xhr: function() {
+    		    var xhr = new window.XMLHttpRequest();
+    		    xhr.upload.addEventListener("progress", function(evt) {
+        		if (evt.lengthComputable)
+        		{
+            		    var percentComplete = 100.0 * evt.loaded / evt.total;
+            		    console.log("update "+percentComplete.toFixed(0)+"\n");
+			    document.getElementById('myBar').style.width=percentComplete.toFixed(0)+"%";
+        		}
+    		    }, false);
+    		    return xhr;
+		},
+                success: function () {
+                    console.log("upload ok\n");
+                    alert("Перезагрузите устройство. Обновление может занять 10-15 секунд.");
+                    location.reload(true);
+                    },
+                error : function () {
+                    console.log("upload error\n");
+                    alert("Ошибка загрузки файла !");
+                    },
+		});
+	}
     </script>
     <script src="dir.js"></script>
     
@@ -127,7 +164,7 @@
 	listFiles(TYPE_PROG, '/prog/');
     </script>
     <br/>
-    <input type="file" onchange="uploadFile(event, '/prog/')">
+    <input type="file" onchange="uploadFile(event, '/prog/')" />
     <hr/>
     
     
@@ -138,7 +175,7 @@
 	listFiles(TYPE_GAME, '/game/');
     </script>
     <br/>
-    <input type="file" onchange="uploadFile(event, '/game/')">
+    <input type="file" onchange="uploadFile(event, '/game/')" />
     <hr/>
     
     
@@ -149,7 +186,7 @@
 	listFiles(TYPE_UTIL, '/util/');
     </script>
     <br/>
-    <input type="file" onchange="uploadFile(event, '/util/')">
+    <input type="file" onchange="uploadFile(event, '/util/')" />
     <hr/>
     
     
@@ -160,7 +197,18 @@
 	listFiles(TYPE_TAPE, '/tape/');
     </script>
     <br/>
-    <input type="file" onchange="uploadFile(event, '/tape/')">
+    <input type="file" onchange="uploadFile(event, '/tape/')" />
+    <hr/>
+    
+    
+    <br/>
+    <h3>Обновление прошивки:</h3>
+    <table border=0>
+	<tr>
+	    <td><input type="file" onchange="uploadFOTA(event)" /></td>
+	    <td width="50%"><div id="myProgress"><div id="myBar"></div></div></td>
+	</tr>
+    </table>
     <hr/>
     
     

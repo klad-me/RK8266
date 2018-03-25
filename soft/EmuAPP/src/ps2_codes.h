@@ -73,6 +73,9 @@
 #define PS2_R_CTRL	0x114
 #define PS2_L_ALT	0x11
 #define PS2_R_ALT	0x111
+#define PS2_L_WIN	0x11F
+#define PS2_R_WIN	0x127
+#define PS2_MENU	0x12F
 #define PS2_ENTER	0x5A
 #define PS2_ESC		0x76
 #define PS2_INSERT	0x170

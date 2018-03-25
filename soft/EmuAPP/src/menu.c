@@ -81,20 +81,21 @@ again:
 	"4.Загрузка с магнитофона\n"
 	"5.Переключиться в режим WiFi\n"
 	);
-    ui_draw_text(10, 20,
+    ui_draw_text(10, 18,
 	"Привязка клавиатуры:\n"
-	"Ф1-Ф4   - F1-F4\n"
-	"ВК      - Enter\n"
-	"ПС      - Enter на доп.клавиатуре\n"
-	"ЗБ      - Backspace\n"
-	"УС      - CTRL\n"
-	"СС      - Shift\n"
-	"РУС/ЛАТ - Caps Lock\n"
-	"\\       - Home\n"
-	"СТР     - End/Delete\n"
-	"АР2     - Alt\n"
+	"Ф1-Ф4      - F1-F4\n"
+	"ВК         - Enter\n"
+	"ПС         - Enter на доп.клавиатуре\n"
+	"ЗБ         - Backspace\n"
+	"УС         - CTRL\n"
+	"СС         - Shift\n"
+	"РУС/ЛАТ    - Caps Lock\n"
+	"\\          - Home\n"
+	"СТР        - End/Delete\n"
+	"АР2        - Alt\n"
 	"\n"
-	"ТУРБО   - Scroll Lock\n"
+	"ТУРБО      - Scroll Lock\n"
+	"WIN+Курсор - Сдвиг изображения\n"
 	);
     switch (ui_select(5))
     {

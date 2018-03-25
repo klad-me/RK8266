@@ -127,8 +127,7 @@ int8_t ui_select(uint8_t count)
 	    if ( (c==KEY_LEFT) && (n > 0) )
 	    {
 		// Влево
-		n-=20;
-		if (n < 0) n=0;
+		if (n > 20) n-=20; else n=0;
 		break;
 	    } else
 	    if ( (c==KEY_RIGHT) && (n < count-1) )
@@ -252,7 +251,7 @@ void ui_start(void)
     screen.screen_h=38;
     screen.char_h=8;
     screen.cursor_x=0;
-    screen.cursor_y=0;
+    screen.cursor_y=99;
     screen.cursor_type=0;
     screen.vram=(uint8_t*)ui_scr;
     screen.overlay_timer=0;

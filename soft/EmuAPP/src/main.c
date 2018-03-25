@@ -42,7 +42,7 @@ void main_program(void)
     uint32_t prev_T=getCycleCount();
     uint32_t sec_T=prev_T;
     uint32_t cycles=0, sec_cycles=0;
-    bool turbo=false;
+    bool turbo=false, win=false;
     while (1)
     {
         uint32_t T=getCycleCount();
@@ -88,25 +88,68 @@ void main_program(void)
 	    sec_T=prev_T=getCycleCount();
 	    sec_cycles=0;
 	}
-        ps2_leds(kbd_rus(), false, turbo);
-        ps2_periodic();
-        switch (keymap_periodic())
-        {
-    	    case PS2_ESC:
-    		// Нажали ESC - запуск меню
-		ui_start();
-		    menu();
-		ui_stop();
+	
+	if (win)
+	{
+	    // Win нажата - обрабатываем спец-команды
+	    uint16_t c=ps2_read();
+	    switch (c)
+	    {
+		case PS2_LEFT:
+		    // Экран влево
+		    if (screen.x_offset > 0) screen.x_offset--;
+		    break;
+		    
+		case PS2_RIGHT:
+		    // Экран вправо
+		    if (screen.x_offset < 16) screen.x_offset++;
+		    break;
+		    
+		case PS2_UP:
+		    // Экран вверх
+		    if (screen.y_offset > 8) screen.y_offset-=8; else screen.y_offset=0;
+		    break;
+		    
+		case PS2_DOWN:
+		    // Экран вниз
+		    if (screen.y_offset < 8*8) screen.y_offset+=8;
+		    break;
+		    
+		case PS2_L_WIN | 0x8000:
+		case PS2_R_WIN | 0x8000:
+		    // Отжали Win
+		    win=false;
+		    break;
+	    }
+	} else
+	{
+	    // Win не нажата
+    	    ps2_leds(kbd_rus(), false, turbo);
+    	    ps2_periodic();
+    	    switch (keymap_periodic())
+    	    {
+    		case PS2_ESC:
+    		    // Нажали ESC - запуск меню
+		    ui_start();
+			menu();
+		    ui_stop();
+		    
+		    // Сбрасываем время циклов
+		    sec_T=prev_T=getCycleCount();
+		    sec_cycles=0;
+		    break;
 		
-		// Сбрасываем время циклов
-		sec_T=prev_T=getCycleCount();
-		sec_cycles=0;
-		break;
-	    
-	    case PS2_SCROLL:
-		// Переключатель турбо
-		turbo=!turbo;
-		break;
-        }
+		case PS2_SCROLL:
+		    // Переключатель турбо
+		    turbo=!turbo;
+		    break;
+		
+		case PS2_L_WIN:
+		case PS2_R_WIN:
+		    // Нажали Win
+		    win=true;
+		    break;
+    	    }
+    	}
     }
 }

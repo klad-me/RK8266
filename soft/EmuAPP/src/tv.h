@@ -10,7 +10,7 @@ extern "C" {
 #endif
 
 
-extern uint8_t tv_empty_line[80];
+extern uint8_t tv_empty_line[64];
 
 
 void tv_init(void);

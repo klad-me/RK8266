@@ -6,7 +6,7 @@
 
 
 // 1600000000L/(div*bestbck)
-#define WS_I2S_BCK 4
+#define WS_I2S_BCK 5
 #define WS_I2S_DIV 4
 
 #ifndef i2c_bbpll

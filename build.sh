@@ -25,6 +25,11 @@ cd WiFiAPP
 make || exit
 cd ..
 
+cd mkfw
+rm -f 0x00000.bin fota.bin
+./mkfw || exit
+cd ..
+
 cd ..
 
 
@@ -32,7 +37,7 @@ cd ..
 mkdir -p builds/$BUILD || exit
 
 # Копируем файлы
-cp soft/boot-2apps/out/boot.bin builds/$BUILD/0x00000.bin || exit
-cp soft/EmuAPP/out/emu-0x00000.bin builds/$BUILD/0x01000.bin || exit
-cp soft/WiFiAPP/out/wifi.1.bin builds/$BUILD/0x10000.bin || exit
-cp soft/WiFiAPP/httpfs/httpfs.bin builds/$BUILD/0x70000.bin || exit
+cp soft/mkfw/0x00000.bin builds/$BUILD || exit
+cp soft/mkfw/fota.bin builds/$BUILD || exit
+
+echo "Build $BUILD done"

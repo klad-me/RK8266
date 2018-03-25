@@ -12,10 +12,12 @@ extern "C" {
 
 struct screen
 {
-    uint8_t screen_w, screen_h, char_h;
+    uint8_t screen_w, screen_h, underline_y, char_h, attr_visible;
+    uint8_t x_offset, y_offset;
     uint8_t cursor_x, cursor_y, cursor_type;
+    uint8_t dma_burst;
     uint8_t *vram;
-    char overlay[78];
+    char overlay[64];
     uint16_t overlay_timer;
 };
 extern struct screen screen;

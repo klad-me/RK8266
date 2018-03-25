@@ -7,9 +7,9 @@
 
 
 // Используемые паттерны для I2S
-uint8_t tv_empty_line[80];
-static uint8_t tv_sync_4_28__4_28[80], tv_sync_4_28__28_4[80];
-static uint8_t tv_sync_28_4__4_28[80], tv_sync_28_4__28_4[80];
+uint8_t tv_empty_line[64];
+static uint8_t tv_sync_4_28__4_28[64], tv_sync_4_28__28_4[64];
+static uint8_t tv_sync_28_4__4_28[64], tv_sync_28_4__28_4[64];
 
 
 static const uint8_t* TV_vsync1[] =
@@ -59,7 +59,7 @@ static const uint8_t* tv_i2s_cb(void)
     static uint8_t field=0;
     static const uint8_t* *sync=TV_vsync1;
     static uint16_t line=0;
-#define T_DELAY_N	6
+#define T_DELAY_N	7
     static uint32_t Tdelay[T_DELAY_N];	// линия задержки синхронизации (т.к. I2S имеет задержку при выводе)
     static uint8_t Tdelay_n=0;
     
@@ -109,66 +109,32 @@ void tv_init(void)
     // Заполняем все паттерны (порядок байт 3-2-1-0)
     
     // Пустая строка - только синхра 4мкс
-    ets_memset(tv_empty_line, 0x00, 80);
-    tv_empty_line[3]=0xff;
-    tv_empty_line[2]=0xff;
-    tv_empty_line[1]=0xff;
-    tv_empty_line[0]=0xff;
-    tv_empty_line[7]=0xff;
+    ets_memset(tv_empty_line, 0x00, 64);
+    ets_memset(tv_empty_line+0, 0xff, 4);
     
     // Паттерн 4-28, 4-28 мкс
-    ets_memset(tv_sync_4_28__4_28, 0x00, 80);
-    tv_sync_4_28__4_28[3]=0xff;
-    tv_sync_4_28__4_28[2]=0xff;
-    tv_sync_4_28__4_28[1]=0xff;
-    tv_sync_4_28__4_28[0]=0xff;
-    tv_sync_4_28__4_28[7]=0xff;
-    tv_sync_4_28__4_28[43]=0xff;
-    tv_sync_4_28__4_28[42]=0xff;
-    tv_sync_4_28__4_28[41]=0xff;
-    tv_sync_4_28__4_28[40]=0xff;
-    tv_sync_4_28__4_28[47]=0xff;
+    ets_memset(tv_sync_4_28__4_28, 0x00, 64);
+    ets_memset(tv_sync_4_28__4_28+0, 0xff, 4);
+    ets_memset(tv_sync_4_28__4_28+32, 0xff, 4);
     
     // Паттерн 4-28, 28-4 мкс
-    ets_memset(tv_sync_4_28__28_4, 0x00, 40);
-    tv_sync_4_28__28_4[3]=0xff;
-    tv_sync_4_28__28_4[2]=0xff;
-    tv_sync_4_28__28_4[1]=0xff;
-    tv_sync_4_28__28_4[0]=0xff;
-    tv_sync_4_28__28_4[7]=0xff;
-    ets_memset(tv_sync_4_28__28_4+40, 0xff, 40);
-    tv_sync_4_28__28_4[72]=0x00;
-    tv_sync_4_28__28_4[79]=0x00;
-    tv_sync_4_28__28_4[78]=0x00;
-    tv_sync_4_28__28_4[77]=0x00;
-    tv_sync_4_28__28_4[76]=0x00;
+    ets_memset(tv_sync_4_28__28_4, 0x00, 32);
+    ets_memset(tv_sync_4_28__28_4+0, 0xff, 4);
+    
+    ets_memset(tv_sync_4_28__28_4+32, 0xff, 32);
+    ets_memset(tv_sync_4_28__28_4+64-4, 0x00, 4);
 
     // Паттерн 28-4, 4-28 мкс
-    ets_memset(tv_sync_28_4__4_28, 0xff, 40);
-    tv_sync_28_4__4_28[32]=0x00;
-    tv_sync_28_4__4_28[39]=0x00;
-    tv_sync_28_4__4_28[38]=0x00;
-    tv_sync_28_4__4_28[37]=0x00;
-    tv_sync_28_4__4_28[36]=0x00;
-    ets_memset(tv_sync_28_4__4_28+40, 0x00, 40);
-    tv_sync_28_4__4_28[43]=0xff;
-    tv_sync_28_4__4_28[42]=0xff;
-    tv_sync_28_4__4_28[41]=0xff;
-    tv_sync_28_4__4_28[40]=0xff;
-    tv_sync_28_4__4_28[47]=0xff;
+    ets_memset(tv_sync_28_4__4_28, 0xff, 32);
+    ets_memset(tv_sync_28_4__4_28+32-4, 0x00, 4);
+    
+    ets_memset(tv_sync_28_4__4_28+32, 0x00, 32);
+    ets_memset(tv_sync_28_4__4_28+64-4, 0xff, 4);
 
     // Паттерн 28-4, 28-4 мкс
-    ets_memset(tv_sync_28_4__28_4, 0xff, 80);
-    tv_sync_28_4__28_4[32]=0x00;
-    tv_sync_28_4__28_4[39]=0x00;
-    tv_sync_28_4__28_4[38]=0x00;
-    tv_sync_28_4__28_4[37]=0x00;
-    tv_sync_28_4__28_4[36]=0x00;
-    tv_sync_28_4__28_4[72]=0x00;
-    tv_sync_28_4__28_4[79]=0x00;
-    tv_sync_28_4__28_4[78]=0x00;
-    tv_sync_28_4__28_4[77]=0x00;
-    tv_sync_28_4__28_4[76]=0x00;
+    ets_memset(tv_sync_28_4__28_4, 0xff, 32);
+    ets_memset(tv_sync_28_4__28_4+32-4, 0x00, 4);
+    ets_memset(tv_sync_28_4__28_4+64-4, 0x00, 4);
 }
 
 
@@ -179,6 +145,6 @@ void tv_start(void)
     timer0_attachInterrupt(t0_int);
     
     // Запускаем I2S
-    i2s_init(tv_i2s_cb, 80);
+    i2s_init(tv_i2s_cb, 64);
     i2s_start();
 }
