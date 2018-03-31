@@ -5,6 +5,8 @@
 #include "vv55_i.h"
 #include "rom.h"
 #include "align4.h"
+#include "gpio_lib.h"
+#include "board.h"
 
 
 uint8_t RAM[0x8000];
@@ -130,6 +132,7 @@ void i8080_hal_io_output(int port, int value)
 
 void i8080_hal_iff(int on)
 {
+    if (on) gpio_on(BEEPER); else gpio_off(BEEPER);
 }
 
 
@@ -141,5 +144,10 @@ unsigned char* i8080_hal_memory(void)
 
 void i8080_hal_init(void)
 {
+    // Инитим ОЗУ
     ets_memset(RAM, 0x00, sizeof(RAM));
+    
+    // Инитим порт пищалки
+    gpio_init_output(BEEPER);
+    gpio_off(BEEPER);
 }

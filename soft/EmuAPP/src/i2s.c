@@ -2,7 +2,6 @@
 
 #include "slc_register.h"
 #include "pin_mux_register.h"
-#include "gpio_lib.h"
 
 
 // 1600000000L/(div*bestbck)
@@ -193,10 +192,8 @@ static void i2s_int(void)
     if (slc_intr_status & SLC_RX_EOF_INT_ST)
     {
 	// Есть буфер для заполнения
-	gpio_on(14);
 	struct sdio_queue *desc=(struct sdio_queue*)READ_PERI_REG(SLC_RX_EOF_DES_ADDR);
 	desc->buf_ptr=(uint32_t)i2s_cb();
-	gpio_off(14);
     }
 }
 

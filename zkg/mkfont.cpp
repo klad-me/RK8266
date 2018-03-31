@@ -48,12 +48,12 @@ int main()
 	if ((i%16)==0) printf("\n    ");
 	printf("0x%02x, ", z[i]);
     }
-    printf("\n};\n\nconst uint8_t AT_IRAM zkg_graph[128]=\n{");
+    /*printf("\n};\n\nconst uint8_t AT_IRAM zkg_graph[128]=\n{");
     for (int i=0; i<128; i++)
     {
 	if ((i%16)==0) printf("\n    // Line %d", i/16);
 	if ((i%16)==0) printf("\n    ");
 	printf("0x%02x, ", g[i]);
-    }
+    }*/
     printf("\n};\n");
 }

@@ -26,7 +26,7 @@ void call_user_start(void)
             rom_i2c_writeReg(103,4,2,0x91);
         }
     }
-
+    
     // Переключаемся на 160МГц
     REG_SET_BIT(0x3ff00014, BIT(0));
     ets_update_cpu_frequency(160);

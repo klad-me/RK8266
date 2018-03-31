@@ -24,6 +24,7 @@ static struct
 } ik57;
 
 
+// Графические буфера (I2S работает с задержкой, потому нельзя использовать 2 буфера - надо больше)
 #define N_BUFS	8
 static uint8_t buf[N_BUFS][64];
 static volatile uint8_t buf_n=0;
@@ -32,6 +33,7 @@ static volatile uint8_t buf_n=0;
 #define empty_line(data)	do { ets_memset((data)+4, 0x00, 60); } while(0)
 
 
+// Аттрибуты и текст
 #define HIGHLIGHT	0x01
 #define BLINK		0x02
 #define GPA0		0x04
@@ -39,13 +41,50 @@ static volatile uint8_t buf_n=0;
 #define REVERSE		0x10
 #define UNDERLINE	0x20
 
-
 static uint16_t line=0;
 static uint8_t l=0, y=0;
 static uint8_t blink=0, flags=0;
 static uint8_t *txt;
-static uint8_t line_text[100], line_attr[100];	// 100 для возможности сдвига изображения вправо
+static uint8_t line_text[120], line_attr[120];	// 120 для возможности сдвига изображения вправо
 static uint8_t end_of_screen=0;
+
+
+// Регистр статуса
+#define SREG_IE	0x40
+#define SREG_IR	0x20
+#define SREG_LP	0x10
+#define SREG_IC	0x08
+#define SREG_VE	0x04
+#define SREG_DU	0x02
+#define SREG_FO	0x01
+
+static uint8_t sreg=0x00;
+static uint8_t was_IR=0;
+
+
+// Псевдографика
+#define PG_LEFT		0x01
+#define PG_RIGHT	0x02
+#define PG_TOP		0x04
+#define PG_BOTTOM	0x08
+#define PG_VERT		(PG_TOP | PG_BOTTOM)
+#define PG_HORIZ	(PG_LEFT | PG_RIGHT)
+
+static const uint8_t pg_tab[16]=
+{
+    PG_BOTTOM	| PG_RIGHT,	// 0
+    PG_BOTTOM	| PG_LEFT,	// 1
+    PG_TOP	| PG_RIGHT,	// 2
+    PG_TOP	| PG_LEFT,	// 3
+    PG_BOTTOM	| PG_HORIZ,	// 4
+    PG_VERT	| PG_LEFT,	// 5
+    PG_VERT	| PG_RIGHT,	// 6
+    PG_TOP	| PG_HORIZ,	// 7
+		  PG_HORIZ,	// 8
+    PG_VERT,			// 9
+    PG_VERT	| PG_HORIZ,	// A
+};
+
 
 
 #define OVERLAY_Y	3
@@ -177,6 +216,17 @@ line_done:
     // Пустые символы в начале и конце строки, чтобы не портить синхронизацию
     line_text[0]=line_text[1]=line_text[78]=line_text[79]=0;
     line_attr[0]=line_attr[1]=line_attr[78]=line_attr[79]=0;
+    
+    
+    // Если конец экрана или последняя строка - то ставим флаг прерывания
+    if ( (end_of_screen) || (y==screen.screen_h-1) )
+    {
+	if (! was_IR)
+	{
+	    sreg|=SREG_IR;
+	    was_IR=1;
+	}
+    }
 }
 
 
@@ -190,7 +240,6 @@ static inline void render_line(uint8_t *data)
     {
 	// Видимая линия
 	const uint8_t *z=zkg+( ((uint16_t)l) << 7);
-	const uint8_t *g=zkg_graph+( ((uint16_t)l) << 4);
 	uint8_t i, x=4, o=0;
 	uint8_t z1,z2,z3,z4;
 	
@@ -204,10 +253,24 @@ static inline void render_line(uint8_t *data)
 		c=line_text[o];	\
 		a=line_attr[o];	\
 		o++;	\
-		if (l & 0x08) zz=0x00; else	\
 		if (c & 0x80)	\
-		    zz=r_u8(&g[c & 0x7F]); else	\
-		    zz=z[c];	\
+		{	\
+		    c=pg_tab[c & 0x0f];	\
+		    if (l < screen.underline_y)	\
+		    {	\
+			zz=(c & PG_TOP) ? 0x08 : 0x00;	\
+		    } else	\
+		    if (l > screen.underline_y)	\
+		    {	\
+			zz=(c & PG_BOTTOM) ? 0x08 : 0x00;	\
+		    } else	\
+		    {	\
+			zz=((c & PG_LEFT) ? 0x38 : 0x00) | ((c & PG_RIGHT) ? 0x0F : 0x00) | ((c & PG_VERT) ? 0x08 : 0x00);	\
+		    }	\
+		} else	\
+		{	\
+		    zz=(l & 0x08) ? 0x00 : z[c];	\
+		}	\
 		if ( (a & UNDERLINE) && (l==screen.underline_y) ) zz|=0x3F;	\
 		if (a & REVERSE) zz^=0x3F;	\
 	    } while(0)
@@ -255,6 +318,7 @@ void tv_data_field(void)
     // Флаги
     end_of_screen=0;
     flags=0;
+    was_IR=0;
     
     // Получаем первую строку
     next_line();
@@ -280,7 +344,7 @@ void vg75_init(uint8_t *vram)
     screen.char_h=8;
     screen.attr_visible=0;
     screen.x_offset=4;
-    screen.y_offset=16;
+    screen.y_offset=8;
     screen.cursor_x=0;
     screen.cursor_y=0;
     screen.cursor_type=0;
@@ -331,8 +395,31 @@ void vg75_W(uint8_t A, uint8_t value)
 	
 	if ( (value & 0xE0) == 0x20 )
 	{
-	    // Включение отображения
-	    screen.dma_burst=(1 << (value & 0x03));
+	    // Включение/отключение дисплея
+	    if ( ((value>>2) & 0x07) != 0 )
+	    {
+		// Включить
+		screen.dma_burst=(1 << (value & 0x03));
+		//ets_printf("VG75: start display dma_burst=%d\n", screen.dma_burst);
+		sreg|=SREG_VE;
+	    } else
+	    {
+		// Отключить
+		//ets_printf("VG75: stop display\n");
+		sreg&=~SREG_VE;
+	    }
+	} else
+	if (value == 0xA0)
+	{
+	    // Разрешить прерывания
+	    //ets_printf("VG75: int enable\n");
+	    sreg|=SREG_IE;
+	} else
+	if (value == 0xC0)
+	{
+	    // Запретить прерывания
+	    //ets_printf("VG75: int disable\n");
+	    sreg&=~SREG_IE;
 	}
     } else
     {
@@ -349,9 +436,9 @@ void vg75_W(uint8_t A, uint8_t value)
 	    screen.char_h=(vg75.param[2] & 0x0F)+1;	// высота символа в пикселах -1
 	    screen.cursor_type=(vg75.param[3] >> 4) & 0x03;	// форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
 	    screen.attr_visible=((vg75.param[3] & 0x40) != 0);	// видимость аттрибутов (если 1, то аттрибут будет отображен пустым местом, если 0 - будет пропущен)
-	    if (screen.screen_w > 78) screen.screen_w=78;
-	    if (screen.screen_h > 38) screen.screen_h=38;
-	    //ets_printf("VG75: W=%d H=%d CH=%d CUR=%d\n", screen.screen_w, screen.screen_h, screen.char_h, screen.cursor_type);
+	    ets_printf("VG75: W=%d H=%d CH=%d CUR=%d\n", screen.screen_w, screen.screen_h, screen.char_h, screen.cursor_type);
+	    if (screen.screen_w > 100) screen.screen_w=100;
+	    //if (screen.screen_h > 38) screen.screen_h=38;
 	} else
 	if ( (vg75.cmd==0x80) && (vg75.param_n==2) )
 	{
@@ -366,7 +453,20 @@ void vg75_W(uint8_t A, uint8_t value)
 
 uint8_t vg75_R(uint8_t A)
 {
-    return 0xff;
+    if (A)
+    {
+	// SREG
+	uint8_t value=sreg;
+	
+	// Сбрасываем биты, которые должны сброситься при чтении
+	sreg&=~(SREG_IR | SREG_LP | SREG_IC | SREG_DU | SREG_FO);
+	
+	return value;
+    } else
+    {
+	// PREG
+	return 0x00;
+    }
 }
 
 

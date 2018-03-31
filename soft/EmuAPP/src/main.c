@@ -124,10 +124,16 @@ void main_program(void)
 	} else
 	{
 	    // Win не нажата
+	    uint16_t c;
+	    
     	    ps2_leds(kbd_rus(), false, turbo);
     	    ps2_periodic();
-    	    switch (keymap_periodic())
+    	    c=keymap_periodic();
+    	    switch (c)
     	    {
+    		case 0:
+    		    break;
+    		
     		case PS2_ESC:
     		    // Нажали ESC - запуск меню
 		    ui_start();
@@ -148,6 +154,28 @@ void main_program(void)
 		case PS2_R_WIN:
 		    // Нажали Win
 		    win=true;
+		    break;
+		
+		/*case PS2_F12:
+		    // Дамп экрана
+		    {
+			ets_printf("VRAM w=%d h=%d:\n", screen.screen_w, screen.screen_h);
+			int i,j;
+			uint8_t *vram=screen.vram;
+			for (i=0; i<screen.screen_h; i++)
+			{
+			    ets_printf("%2d: ", i);
+			    for (j=0; j<screen.screen_w; j++)
+			    {
+				ets_printf(" %02X", *vram++);
+			    }
+			    ets_printf("\n");
+			}
+		    }
+		    break;*/
+		
+		default:
+		    ets_printf("PS2: %04X\n", c);
 		    break;
     	    }
     	}
