@@ -42,6 +42,7 @@ extern void gpio_pin_intr_state_set(uint32_t i, GPIO_INT_TYPE intr_state);
 extern uint32_t SPIRead(uint32_t addr, void *outptr, uint32_t len);
 extern uint32_t SPIEraseSector(int);
 extern uint32_t SPIWrite(uint32_t addr, const void *inptr, uint32_t len);
+extern void SPIUnlock(void);
 
 extern void ets_printf(char*, ...);
 extern void ets_install_putc1(void *routine);

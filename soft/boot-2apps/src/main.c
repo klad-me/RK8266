@@ -7,9 +7,19 @@
 uint32_t main_program(void)
 {
     uint32_t runAddr;
+
+    if(rom_i2c_readReg(103,4,1) != 136) // 8: 40MHz, 136: 26MHz
+    {
+        //if(get_sys_const(sys_const_crystal_26m_en) == 1) // soc_param0: 0: 40MHz, 1: 26MHz, 2: 24MHz
+        {
+            // set 80MHz PLL CPU
+            rom_i2c_writeReg(103,4,1,0x88);
+            rom_i2c_writeReg(103,4,2,0x91);
+        }
+    }
     
-    // Настраиваем UART
-    uart_div_modify(0, 450);
+    // Инитим UART на 115200
+    uart_div_modify(0, 80000000/115200);
     ets_delay_us(100000);
     
     ets_printf("\r\nRK8266 Boot\r\n");
