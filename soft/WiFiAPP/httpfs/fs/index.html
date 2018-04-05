@@ -10,11 +10,17 @@
 	var TYPE_TAPE=1, TYPE_PROG=2, TYPE_GAME=3, TYPE_UTIL=4;
 	var files=[];
 	var flashSize=0, flashFree=0;
+	var fwVer=0;
 	
 	
 	function addFile(type, name, size)
 	{
-	    files.push( [type, name, size] );
+	    var i;
+	    for (i=0; i<files.length; i++)
+	    {
+		if (files[i][1] > name) break;
+	    }
+	    files.splice(i, 0, [type, name, size]);
 	}
 	
 	
@@ -22,6 +28,12 @@
 	{
 	    flashSize=size;
 	    flashFree=free;
+	}
+	
+	
+	function fwInfo(ver)
+	{
+	    fwVer=ver;
 	}
 	
 	
@@ -203,6 +215,10 @@
     
     <br/>
     <h3>Обновление прошивки:</h3>
+    Текущая версия:
+    <script language="javascript">
+	document.write(fwVer);
+    </script>
     <table border=0>
 	<tr>
 	    <td><input type="file" onchange="uploadFOTA(event)" /></td>

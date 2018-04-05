@@ -150,47 +150,7 @@ int8_t ui_select(uint8_t count)
 }
 
 
-int16_t ui_select_file(uint8_t type)
-{
-#define MAX_FILES	80
-    uint8_t filelist[MAX_FILES];
-    uint8_t n_files;
-    uint16_t i;
-    
-    // Собираем каталог файлов
-    n_files=0;
-    for (i=0; i<FAT_SIZE; i++)
-    {
-	if (fat[i].type == type)
-	{
-	    filelist[n_files++]=i;
-	    if (n_files>=MAX_FILES) break;
-	}
-    }
-    
-    // Рисуем
-    ui_clear();
-    ui_header("РАДИО-86РК -->");
-    if (n_files==0)
-    {
-	ui_draw_text(10, 10, "Нет файлов !");
-	ui_sleep(1000);
-	return -1;
-    }
-    
-    ui_draw_text(10, 8, "Выберите файл для загрузки:");
-    for (i=0; i<n_files; i++)
-    {
-	ui_draw_text(10+(i/20)*16, 10+(i%20), ffs_name(filelist[i]));
-    }
-    int8_t n=ui_select(n_files);
-    if (n >= 0)
-	return filelist[n]; else
-	return -1;
-}
-
-
-const char* ui_input_text(const char *comment, uint8_t max_len)
+const char* ui_input_text(const char *comment, const char *_text, uint8_t max_len)
 {
     static char text[64];
     uint8_t pos;
@@ -198,24 +158,38 @@ const char* ui_input_text(const char *comment, uint8_t max_len)
     
 #define EDIT_X	10
 #define EDIT_Y	9
-    pos=0;
-    screen.cursor_x=EDIT_X;
+    if (_text)
+    {
+	// Есть текст
+	ets_strcpy(text, _text);
+	pos=ets_strlen(text);
+    } else
+    {
+	// Нет текста - начинаем с пустой строки
+	text[0]=0;
+	pos=0;
+    }
+    
+    screen.cursor_x=EDIT_X+pos;
     screen.cursor_y=EDIT_Y;
     ui_clear();
     ui_header("РАДИО-86РК -->");
     ui_draw_text(10, 8, comment);
+    ui_draw_text(EDIT_X, EDIT_Y, text);
     while (1)
     {
 	c=ps2_sym();
 	if (c==KEY_ESC)
 	{
 	    // Отмена
+	    screen.cursor_y=99;
 	    return 0;
 	} else
 	if ( (c==KEY_ENTER) && (pos > 0) )
 	{
 	    // Сохранение
 	    text[pos]=0;
+	    screen.cursor_y=99;
 	    return text;
 	} else
 	if ( (c==KEY_BACKSPACE) && (pos > 0) )
@@ -237,6 +211,17 @@ const char* ui_input_text(const char *comment, uint8_t max_len)
 }
 
 
+int8_t ui_yes_no(const char *comment)
+{
+    ui_clear();
+    ui_header("РАДИО-86РК -->");
+    ui_draw_text(10, 8, comment);
+    ui_draw_text(10, 10, "НЕТ\nДА\n");
+    return ui_select(2);
+}
+
+
+
 
 static struct screen save;
 
@@ -249,7 +234,11 @@ void ui_start(void)
     // Перенастраиваем экран под себя
     screen.screen_w=78;
     screen.screen_h=38;
+    screen.underline_y=7;
     screen.char_h=8;
+    screen.x_offset=4;
+    screen.y_offset=8;
+    screen.attr_visible=0;
     screen.cursor_x=0;
     screen.cursor_y=99;
     screen.cursor_type=0;

@@ -8,9 +8,14 @@
 #include "files.h"
 #include "tape.h"
 #include "zkg.h"
+#include "xprintf.h"
+#include "fileman.h"
 
 
-static bool menu_load(void)
+extern char __BUILD_NUMBER__;
+
+
+bool menu_fileman(void)
 {
     uint8_t type;
     int16_t n;
@@ -22,8 +27,9 @@ again:
 	"1.Программы\n"
 	"2.Игры\n"
 	"3.Утилиты\n"
+	"4.Магнитофонные записи\n"
 	);
-    switch (ui_select(5))
+    switch (ui_select(4))
     {
 	case 0:
 	    // Программы
@@ -40,71 +46,93 @@ again:
 	    type=TYPE_UTIL;
 	    break;
 	
+	case 3:
+	    // Магнитофонные записи
+	    type=TYPE_TAPE;
+	    break;
+	
 	default:
 	    return false;
     }
     
-select_again:
-    n=ui_select_file(type);
+    // Выбираем файл
+again2:
+    n=fileman(type, "Выберите файл для загрузки:");
     if (n < 0) goto again;
     
-    // Выбрали файл - загружаем
-    int16_t addr=load_file(n);
-    if (addr >= 0)
+    // Загружаем файл
+    if (type != TYPE_TAPE)
     {
-	// Нормально загрузилось - запускаем
-	i8080_jump(addr);
-	
-	// Возвращаемся к эмуляции
-	return true;
+	// Загрузка образа в память
+	int16_t addr=load_file(n);
+	if (addr >= 0)
+	{
+	    // Нормально загрузилось - запускаем
+	    i8080_jump(addr);
+	    
+	    // Возвращаемся к эмуляции
+	    return true;
+	} else
+	{
+	    // Ошибка загрузки файла
+	    ui_clear();
+	    ui_header("РАДИО-86РК -->");
+	    ui_draw_text(10, 10, "Ошибка загрузки файла !");
+	    ui_sleep(1000);
+	    goto again2;
+	}
     } else
     {
-	// Ошибка загрузки файла
-	ui_clear();
-	ui_header("РАДИО-86РК -->");
-	ui_draw_text(10, 10, "Ошибка загрузки файла !");
-	ui_sleep(1000);
-	goto select_again;
+	// Загрузка с магнитофона
+	tape_load(n);
+	return true;
     }
 }
 
 
+
+
 void menu(void)
 {
+    char str[32];
+    
 again:
     ui_clear();
     ui_header("РАДИО-86РК -->");
     ui_draw_list(
-	"1.Возврат в монитор (без очистки памяти)\n"
-	"2.Полный сброс\n"
-	"3.Загрузка образа\n"
-	"4.Загрузка с магнитофона\n"
-	"5.Переключиться в режим WiFi\n"
+	"1.(F5)  Файловый менеджер\n"
+	"2.(F9)  Возврат в монитор (без очистки памяти)\n"
+	"3.(F10) Полный сброс\n"
+	"4.(F12) Переключиться в режим WiFi\n"
 	);
-    ui_draw_text(10, 18,
+    ui_draw_text(10, 16,
 	"Привязка клавиатуры:\n"
-	"Ф1-Ф4      - F1-F4\n"
-	"ВК         - Enter\n"
-	"ПС         - Enter на доп.клавиатуре\n"
-	"ЗБ         - Backspace\n"
-	"УС         - CTRL\n"
-	"СС         - Shift\n"
-	"РУС/ЛАТ    - Caps Lock\n"
-	"\\          - Home\n"
-	"СТР        - End/Delete\n"
-	"АР2        - Alt\n"
+	"Ф1-Ф4   - F1-F4          ВК  - Enter\n"
+	"АР2     - Alt            ПС  - Доп. Enter\n"
+	"РУС/ЛАТ - Caps Lock      ЗБ  - Backspace\n"
+	"УС      - CTRL           \\   - Home\n"
+	"СС      - Shift          СТР - End/Delete\n"
 	"\n"
-	"ТУРБО      - Scroll Lock\n"
-	"WIN+Курсор - Сдвиг изображения\n"
+	"\n"
+	"Управление эмуляцией:\n"
+	"Scroll Lock - Турбо режим\n"
+	"WIN+Курсор  - Сдвиг изображения\n"
 	);
-    switch (ui_select(5))
+    xsprintf(str, "RK8266 Сборка #%d", (int)&__BUILD_NUMBER__);
+    ui_draw_text(64+6-ets_strlen(str), 33, str);
+    switch (ui_select(4))
     {
 	case 0:
+	    // Файловый менеджер
+	    if (! menu_fileman()) goto again;
+	    break;
+	
+	case 1:
 	    // Возврат в монитор
 	    i8080_jump(0xF800);
 	    break;
 	
-	case 1:
+	case 2:
 	    // Полный сброс
 	    ets_memset(i8080_hal_memory(), 0x00, 0x8000);
 	    i8080_init();
@@ -112,17 +140,7 @@ again:
 	    ets_memcpy(zkg, zkg_rom, 1024);
 	    break;
 	
-	case 2:
-	    // Загрузка образа
-	    if (! menu_load()) goto again;
-	    break;
-	
 	case 3:
-	    // Загрузка с магнитофона
-	    tape_load();
-	    break;
-	
-	case 4:
 	    // Переключиться в режим WiFi
 	    reboot(0x55AA55AA);
 	    break;

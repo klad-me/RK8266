@@ -13,8 +13,8 @@ void ui_header(const char *s);
 void ui_draw_list(const char *s);
 void ui_draw_text(uint8_t x, uint8_t y, const char *s);
 int8_t ui_select(uint8_t count);
-int16_t ui_select_file(uint8_t type);
-const char* ui_input_text(const char *comment, uint8_t max_len);
+const char* ui_input_text(const char *comment, const char *text, uint8_t max_len);
+int8_t ui_yes_no(const char *comment);
 
 void ui_start(void);
 void ui_stop(void);

@@ -61,6 +61,7 @@ FLASH_SECTIONS+= \
 ##############################################################################
 SDK=/home/heavy/KLAD/x-tools/esp8266/sdk
 export PATH := /home/heavy/KLAD/x-tools/esp8266/xtensa-lx106-elf/bin:$(PATH)
+BUILD_NUMBER=$(shell git rev-list --count HEAD)
 
 CC=xtensa-lx106-elf-gcc
 CPP=xtensa-lx106-elf-g++
@@ -78,7 +79,8 @@ CPPFLAGS=-Wall -Wshadow -DICACHE_FLASH -O3 -mlongcalls \
 LIBS=-L$(SDK)/lib -lmain -lnet80211 -lwpa -llwip -lpp -lphy -Wl,--end-group -lgcc -lcrypto
 # -lsmartconfig -lssl -lupgrade
 LD_SCRIPT=ld/eagle.app.v6.ld
-LDFLAGS=-nostdlib -Wl,--start-group $(LIBS) -Wl,--relax,--gc-sections 
+LDFLAGS_BUILD_NUMBER=-Xlinker --defsym -Xlinker __BUILD_NUMBER__=$(BUILD_NUMBER)
+LDFLAGS=-nostdlib -Wl,--start-group $(LIBS) -Wl,--relax,--gc-sections $(LDFLAGS_BUILD_NUMBER)
 ESPTOOL=esptool.py --port /dev/ttyUSB0
 ##############################################################################
 

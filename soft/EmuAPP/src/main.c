@@ -12,6 +12,8 @@
 #include "ui.h"
 #include "menu.h"
 #include "ffs.h"
+#include "zkg.h"
+#include "reboot.h"
 #include "board.h"
 
 
@@ -125,6 +127,7 @@ void main_program(void)
 	{
 	    // Win не нажата
 	    uint16_t c;
+	    bool rst=false;
 	    
     	    ps2_leds(kbd_rus(), false, turbo);
     	    ps2_periodic();
@@ -135,14 +138,37 @@ void main_program(void)
     		    break;
     		
     		case PS2_ESC:
-    		    // Нажали ESC - запуск меню
+    		    // Меню
 		    ui_start();
 			menu();
 		    ui_stop();
-		    
-		    // Сбрасываем время циклов
-		    sec_T=prev_T=getCycleCount();
-		    sec_cycles=0;
+		    rst=true;
+		    break;
+		
+		case PS2_F5:
+		    // Файловый менеджен
+		    ui_start();
+			menu_fileman();
+		    ui_stop();
+		    rst=true;
+		    break;
+		
+		case PS2_F9:
+		    // Выход в монитор
+		    i8080_jump(0xF800);
+		    break;
+		
+		case PS2_F10:
+		    // Сброс
+        	    ets_memset(i8080_hal_memory(), 0x00, 0x8000);
+        	    i8080_init();
+        	    i8080_jump(0xF800);
+        	    ets_memcpy(zkg, zkg_rom, 1024);
+        	    break;
+		
+		case PS2_F12:
+		    // WiFi
+		    reboot(0x55AA55AA);
 		    break;
 		
 		case PS2_SCROLL:
@@ -178,6 +204,13 @@ void main_program(void)
 		    ets_printf("PS2: %04X\n", c);
 		    break;
     	    }
+    	    
+    	    if (rst)
+    	    {
+	        // Сбрасываем время циклов
+		sec_T=prev_T=getCycleCount();
+		sec_cycles=0;
+	    }
     	}
     }
 }

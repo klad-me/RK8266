@@ -111,7 +111,9 @@ void i8080_hal_memory_write_byte(int addr, int byte)
 		    // Меняем адресацию
 		    uint8_t c=(addr >> 3);
 		    uint8_t l=(addr & 0x07);
-		    zkg[ (l<<7) + c ]=(byte ^ 0xff) & 0x3F;	// записываем с инверсией
+		    
+		    if (c != 0)	// символ с кодом 0 запрещаем менять
+			zkg[ (l<<7) + c ]=(byte ^ 0xff) & 0x3F;	// записываем с инверсией
 		}
 		break;
 	}

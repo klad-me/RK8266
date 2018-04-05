@@ -79,100 +79,104 @@ static const struct kmap AT_IRAM kb_rus[]=
 static const struct kmap AT_IRAM kb_lat[]=
 {
     // Ряд 1
-    { PS2_SEMICOLON,	RK_SEMICOLON	},	// ';'
-    { PS2_1,		RK_1		},	// '1'
-    { PS2_KP_1,		RK_1		},	// '1'
-    { PS2_2,		RK_2		},	// '2'
-    { PS2_KP_2,		RK_2		},	// '2'
-    { PS2_3,		RK_3		},	// '3'
-    { PS2_KP_3,		RK_3		},	// '3'
-    { PS2_4,		RK_4		},	// '4'
-    { PS2_KP_4,		RK_4		},	// '4'
-    { PS2_5,		RK_5		},	// '5'
-    { PS2_KP_5,		RK_5		},	// '5'
-    { PS2_6,		RK_6		},	// '6'
-    { PS2_KP_6,		RK_6		},	// '6'
-    { PS2_7,		RK_7		},	// '7'
-    { PS2_KP_7,		RK_7		},	// '7'
-    { PS2_QUOTE,	RK_7 | RK_SS	},	// ''' => СС + '7'
-    { PS2_8,		RK_8		},	// '8'
-    { PS2_KP_8,		RK_8		},	// '8'
-    { PS2_9,		RK_9		},	// '9'
-    { PS2_KP_9,		RK_9		},	// '9'
-    { PS2_0,		RK_0		},	// '0'
-    { PS2_KP_0,		RK_0		},	// '0'
-    { PS2_MINUS,	RK_MINUS	},	// '-'
-    { PS2_EQUALS,	RK_MINUS | RK_SS},	// '=' ('=' => CC + '-')
-    { PS2_TAB,		RK_TAB		},	// ТАБ
-    { PS2_KP_ENTER,	RK_PS		},	// ПС
+    { PS2_SEMICOLON,	RK_SEMICOLON		},	// ';'
+    { PS2_KP_PLUS,	RK_SEMICOLON | RK_SS	},	// '+'
+    { PS2_1,		RK_1			},	// '1'
+    { PS2_KP_1,		RK_1			},	// '1'
+    { PS2_2,		RK_2			},	// '2'
+    { PS2_KP_2,		RK_2			},	// '2'
+    { PS2_3,		RK_3			},	// '3'
+    { PS2_KP_3,		RK_3			},	// '3'
+    { PS2_4,		RK_4			},	// '4'
+    { PS2_KP_4,		RK_4			},	// '4'
+    { PS2_5,		RK_5			},	// '5'
+    { PS2_KP_5,		RK_5			},	// '5'
+    { PS2_6,		RK_6			},	// '6'
+    { PS2_KP_6,		RK_6			},	// '6'
+    { PS2_7,		RK_7			},	// '7'
+    { PS2_KP_7,		RK_7			},	// '7'
+    { PS2_QUOTE,	RK_7 | RK_SS		},	// ''' => СС + '7'
+    { PS2_8,		RK_8			},	// '8'
+    { PS2_KP_8,		RK_8			},	// '8'
+    { PS2_9,		RK_9			},	// '9'
+    { PS2_KP_9,		RK_9			},	// '9'
+    { PS2_0,		RK_0			},	// '0'
+    { PS2_KP_0,		RK_0			},	// '0'
+    { PS2_MINUS,	RK_MINUS		},	// '-'
+    { PS2_KP_MINUS,	RK_MINUS		},	// '-'
+    { PS2_EQUALS,	RK_MINUS | RK_SS	},	// '=' ('=' => CC + '-')
+    { PS2_TAB,		RK_TAB			},	// ТАБ
+    { PS2_KP_ENTER,	RK_PS			},	// ПС
     
     // Ряд 2
-    { PS2_J,		RK_J		},	// 'J'
-    { PS2_C,		RK_C		},	// 'C'
-    { PS2_U,		RK_U		},	// 'U'
-    { PS2_K,		RK_K		},	// 'K'
-    { PS2_E,		RK_E		},	// 'E'
-    { PS2_N,		RK_N		},	// 'N'
-    { PS2_G,		RK_G		},	// 'G'
-    { PS2_L_BRACKET,	RK_L_BRACKET	},	// '['
-    { PS2_R_BRACKET,	RK_R_BRACKET	},	// ']'
-    { PS2_Z,		RK_Z		},	// 'Z'
-    { PS2_H,		RK_H		},	// 'H'
-    { PS2_KP_STAR,	RK_STAR		},	// '*'
-    { PS2_ENTER,	RK_VK		},	// ВК
+    { PS2_J,		RK_J			},	// 'J'
+    { PS2_C,		RK_C			},	// 'C'
+    { PS2_U,		RK_U			},	// 'U'
+    { PS2_K,		RK_K			},	// 'K'
+    { PS2_E,		RK_E			},	// 'E'
+    { PS2_N,		RK_N			},	// 'N'
+    { PS2_G,		RK_G			},	// 'G'
+    { PS2_L_BRACKET,	RK_L_BRACKET		},	// '['
+    { PS2_R_BRACKET,	RK_R_BRACKET		},	// ']'
+    { PS2_Z,		RK_Z			},	// 'Z'
+    { PS2_H,		RK_H			},	// 'H'
+    { PS2_KP_STAR,	RK_STAR | RK_SS		},	// '*'
+    { PS2_ENTER,	RK_VK			},	// ВК
     
     // Ряд 3
-    { PS2_L_CTRL,	RK_US		},	// УС
-    { PS2_R_CTRL,	RK_US		},	// УС
-    { PS2_F,		RK_F		},	// 'Ф'
-    { PS2_Y,		RK_Y		},	// 'Ы'
-    { PS2_W,		RK_W		},	// 'В'
-    { PS2_A,		RK_A		},	// 'А'
-    { PS2_P,		RK_P		},	// 'П'
-    { PS2_R,		RK_R		},	// 'Р'
-    { PS2_O,		RK_O		},	// 'О'
-    { PS2_L,		RK_L		},	// 'Л'
-    { PS2_D,		RK_D		},	// 'Д'
-    { PS2_V,		RK_V		},	// 'Ж'
-    { PS2_BACK_SLASH,	RK_BACK_SLASH	},	// '\'
-    { PS2_PERIOD,	RK_PERIOD	},	// '.'
-    { PS2_BACKSPACE,	RK_ZB		},	// ЗБ
+    { PS2_L_CTRL,	RK_US			},	// УС
+    { PS2_R_CTRL,	RK_US			},	// УС
+    { PS2_F,		RK_F			},	// 'Ф'
+    { PS2_Y,		RK_Y			},	// 'Ы'
+    { PS2_W,		RK_W			},	// 'В'
+    { PS2_A,		RK_A			},	// 'А'
+    { PS2_P,		RK_P			},	// 'П'
+    { PS2_R,		RK_R			},	// 'Р'
+    { PS2_O,		RK_O			},	// 'О'
+    { PS2_L,		RK_L			},	// 'Л'
+    { PS2_D,		RK_D			},	// 'Д'
+    { PS2_V,		RK_V			},	// 'Ж'
+    { PS2_BACK_SLASH,	RK_BACK_SLASH		},	// '\'
+    { PS2_PERIOD,	RK_PERIOD		},	// '.'
+    { PS2_KP_PERIOD,	RK_PERIOD		},	// '.'
+    { PS2_BACKSPACE,	RK_ZB			},	// ЗБ
     
     // Ряд 4
-    { PS2_L_SHIFT,	RK_SS		},	// СС
-    { PS2_R_SHIFT,	RK_SS		},	// СС
-    { PS2_Q,		RK_Q		},	// 'Q'
+    { PS2_L_SHIFT,	RK_SS			},	// СС
+    { PS2_R_SHIFT,	RK_SS			},	// СС
+    { PS2_Q,		RK_Q			},	// 'Q'
     // ^
-    { PS2_S,		RK_S		},	// 'S'
-    { PS2_M,		RK_M		},	// 'M'
-    { PS2_I,		RK_I		},	// 'I'
-    { PS2_T,		RK_T		},	// 'T'
-    { PS2_X,		RK_X		},	// 'X'
-    { PS2_B,		RK_B		},	// 'B'
+    { PS2_S,		RK_S			},	// 'S'
+    { PS2_M,		RK_M			},	// 'M'
+    { PS2_I,		RK_I			},	// 'I'
+    { PS2_T,		RK_T			},	// 'T'
+    { PS2_X,		RK_X			},	// 'X'
+    { PS2_B,		RK_B			},	// 'B'
     // @
-    { PS2_COMMA,	RK_COMMA	},	// ','
-    { PS2_SLASH,	RK_SLASH	},	// '/'
-    { PS2_CAPS,		RK_RL		},	// РУС/ЛАТ
+    { PS2_COMMA,	RK_COMMA		},	// ','
+    { PS2_SLASH,	RK_SLASH		},	// '/'
+    { PS2_KP_SLASH,	RK_SLASH		},	// '/'
+    { PS2_CAPS,		RK_RL			},	// РУС/ЛАТ
     
     // Ряд 5
-    { PS2_SPACE,	RK_SPACE	},	// 
+    { PS2_SPACE,	RK_SPACE		},	// 
     
     // Правая часть
-    { PS2_F1,		RK_F1		},	// Ф1
-    { PS2_F2,		RK_F2		},	// Ф2
-    { PS2_F3,		RK_F3		},	// Ф3
-    { PS2_F4,		RK_F4		},	// Ф4
-    { PS2_LEFT,		RK_LEFT		},	// <--
-    { PS2_RIGHT,	RK_RIGHT	},	// -->
-    { PS2_UP,		RK_UP		},	// Вверх
-    { PS2_DOWN,		RK_DOWN		},	// Вниз
-    { PS2_HOME,		RK_HOME		},	// \ (стрелка влево-вверх)
-    { PS2_DELETE,	RK_STR		},	// СТР
-    { PS2_END,		RK_STR		},	// СТР
-    { PS2_L_ALT,	RK_AR2		},	// АР2
-    { PS2_R_ALT,	RK_AR2		},	// АР2
+    { PS2_F1,		RK_F1			},	// Ф1
+    { PS2_F2,		RK_F2			},	// Ф2
+    { PS2_F3,		RK_F3			},	// Ф3
+    { PS2_F4,		RK_F4			},	// Ф4
+    { PS2_LEFT,		RK_LEFT			},	// <--
+    { PS2_RIGHT,	RK_RIGHT		},	// -->
+    { PS2_UP,		RK_UP			},	// Вверх
+    { PS2_DOWN,		RK_DOWN			},	// Вниз
+    { PS2_HOME,		RK_HOME			},	// \ (стрелка влево-вверх)
+    { PS2_DELETE,	RK_STR			},	// СТР
+    { PS2_END,		RK_STR			},	// СТР
+    { PS2_L_ALT,	RK_AR2			},	// АР2
+    { PS2_R_ALT,	RK_AR2			},	// АР2
     
-    { 0, 		0		}	// end
+    { 0, 		0			}	// end
 };
 
 
@@ -234,7 +238,7 @@ static PT_THREAD(handle_code(struct pt *pt))
 		{
 		    // Просто кнопка
 		    if (code & 0x8000)
-		        kbd_releaseAll(r); else
+		        kbd_release(r); else
 		        kbd_press(r);
 		}
 		

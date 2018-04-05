@@ -25,7 +25,8 @@ C_SOURCES+= \
 	src/xprintf.c		src/str.c		\
 	src/tape.c		src/reboot.c		\
 	src/crc8.c		src/ffs.c		\
-	src/files.c		src/align4.c
+	src/files.c		src/align4.c		\
+	src/fileman.c
 
 ##############################################################################
 
@@ -52,13 +53,15 @@ DEPDIR=.dep
 ##  Compiler information
 ##############################################################################
 export PATH := /home/heavy/KLAD/x-tools/esp8266/xtensa-lx106-elf/bin:$(PATH)
+BUILD_NUMBER=$(shell git rev-list --count HEAD)
 
 CC=xtensa-lx106-elf-gcc
 INCLUDES=-I$(SRCDIR)
 CFLAGS=-O3 -Wall -Wl,-EL -fno-inline-functions -nostdlib -mlongcalls -mtext-section-literals -D__ets__ $(INCLUDES)
 LIBS=-lgcc
 LD_SCRIPT=ld/eagle.app.v6.ld
-LDFLAGS=-nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static $(LIBS)
+LDFLAGS_BUILD_NUMBER=-Xlinker --defsym -Xlinker __BUILD_NUMBER__=$(BUILD_NUMBER)
+LDFLAGS=-nostdlib -Wl,--no-check-sections -u call_user_start -Wl,-static $(LIBS) $(LDFLAGS_BUILD_NUMBER)
 ESPTOOL=esptool.py
 ##############################################################################
 

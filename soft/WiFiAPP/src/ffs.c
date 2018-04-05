@@ -345,6 +345,33 @@ void ffs_remove(uint16_t n)
 }
 
 
+int16_t ffs_rename(uint16_t old_n, const char *fname)
+{
+    uint16_t n;
+    
+    // Ищем свободную запись в FAT
+    for (n=0; n<FAT_SIZE; n++)
+    {
+	if (fat[n].type==TYPE_FREE) break;
+    }
+    if (n>=FAT_SIZE) return -1;	// нет записей
+    
+    // Заполняем новую запись FAT
+    fat[n]=fat[old_n];
+    ffs_cvt_name(fname, fat[n].name);
+    fat[n].crc8=CRC8(CRC8_INIT, (uint8_t*)&fat[n], sizeof(FILE)-1);
+    
+    // Помечаем старую запись как стертую
+    fat[old_n].type=TYPE_REMOVED;
+    
+    // Записываем FAT
+    f_write(n*sizeof(FILE), (uint8_t*)&fat[n], sizeof(FILE));
+    f_write(old_n*sizeof(FILE), (uint8_t*)&fat[old_n], sizeof(FILE));
+    
+    return n;
+}
+
+
 const char* ffs_name(uint16_t n)
 {
     static char tmp[9];

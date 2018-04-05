@@ -5,6 +5,9 @@
 #include "str.h"
 
 
+extern char __BUILD_NUMBER__;
+
+
 struct map
 {
     const char *path;
@@ -108,6 +111,9 @@ const char* Web::getDir(uint32_t *dataPtr, int *size)
     // Информация о размере флэша: flashInfo(0x00000000, 0x00000000);\n (len=35)
     dataSize+=35;
     
+    // Информация о версии прошивки: fwInfo(0x0000);\n (len=16)
+    dataSize+=16;
+    
     // Создаем данные
     char *data=new char[dataSize+8];
     if (!data) return 0;
@@ -124,6 +130,7 @@ const char* Web::getDir(uint32_t *dataPtr, int *size)
     }
     
     ss+=os_sprintf(ss, "flashInfo(0x%08X, 0x%08X);\n", (unsigned int)ffs_size(), (unsigned int)ffs_free());
+    ss+=os_sprintf(ss, "fwInfo(0x%04X);\n", (int)&__BUILD_NUMBER__);
     
     (*dataPtr)=(uint32_t)data;
     (*size)=dataSize;

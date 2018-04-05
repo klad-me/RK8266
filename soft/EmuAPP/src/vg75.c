@@ -59,7 +59,6 @@ static uint8_t end_of_screen=0;
 #define SREG_FO	0x01
 
 static uint8_t sreg=0x00;
-static uint8_t was_IR=0;
 
 
 // Псевдографика
@@ -214,18 +213,15 @@ line_done:
     }
     
     // Пустые символы в начале и конце строки, чтобы не портить синхронизацию
-    line_text[0]=line_text[1]=line_text[78]=line_text[79]=0;
-    line_attr[0]=line_attr[1]=line_attr[78]=line_attr[79]=0;
-    
-    
-    // Если конец экрана или последняя строка - то ставим флаг прерывания
-    if ( (end_of_screen) || (y==screen.screen_h-1) )
+    for (x=0; x<8; x++)
     {
-	if (! was_IR)
-	{
-	    sreg|=SREG_IR;
-	    was_IR=1;
-	}
+	line_text[x]=0;
+	line_attr[x]=0;
+    }
+    for (x=78; x<80; x++)
+    {
+	line_text[x]=0;
+	line_attr[x]=0;
     }
 }
 
@@ -270,8 +266,8 @@ static inline void render_line(uint8_t *data)
 		} else	\
 		{	\
 		    zz=(l & 0x08) ? 0x00 : z[c];	\
+		    if ( (a & UNDERLINE) && (l==screen.underline_y) ) zz|=0x3F;	\
 		}	\
-		if ( (a & UNDERLINE) && (l==screen.underline_y) ) zz|=0x3F;	\
 		if (a & REVERSE) zz^=0x3F;	\
 	    } while(0)
 	    
@@ -297,6 +293,11 @@ static inline void render_line(uint8_t *data)
     
     // Выбираем следующую строку
     line++;
+    if (line==304)
+    {
+	// Последняя видимая строка - выставляем прерывание
+	sreg|=SREG_IR;
+    }
 }
 
 
@@ -318,7 +319,6 @@ void tv_data_field(void)
     // Флаги
     end_of_screen=0;
     flags=0;
-    was_IR=0;
     
     // Получаем первую строку
     next_line();
@@ -436,7 +436,7 @@ void vg75_W(uint8_t A, uint8_t value)
 	    screen.char_h=(vg75.param[2] & 0x0F)+1;	// высота символа в пикселах -1
 	    screen.cursor_type=(vg75.param[3] >> 4) & 0x03;	// форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
 	    screen.attr_visible=((vg75.param[3] & 0x40) != 0);	// видимость аттрибутов (если 1, то аттрибут будет отображен пустым местом, если 0 - будет пропущен)
-	    ets_printf("VG75: W=%d H=%d CH=%d CUR=%d\n", screen.screen_w, screen.screen_h, screen.char_h, screen.cursor_type);
+	    //ets_printf("VG75: W=%d H=%d CH=%d CUR=%d\n", screen.screen_w, screen.screen_h, screen.char_h, screen.cursor_type);
 	    if (screen.screen_w > 100) screen.screen_w=100;
 	    //if (screen.screen_h > 38) screen.screen_h=38;
 	} else

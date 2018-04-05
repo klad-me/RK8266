@@ -40,6 +40,7 @@ void call_user_start(void)
 	(*ptr++)=0;
     
     // Заменяем обработчик putc1
+//#warning !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     ets_install_putc1((void*)my_putc1);
     
     

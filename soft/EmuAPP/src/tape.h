@@ -11,7 +11,7 @@ bool tape_out(void);
 bool tape_periodic(void);
 
 void tape_save(void);
-void tape_load(void);
+void tape_load(uint16_t n);
 
 
 #endif

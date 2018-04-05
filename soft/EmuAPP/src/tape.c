@@ -305,16 +305,17 @@ void tape_save(void)
     
     // Получаем имя файла
 again:
-    name=ui_input_text("Введите имя файла для сохранения:", 8);
-    if (! name) return;
+    name=ui_input_text("Введите имя файла для сохранения:", 0, 8);
+    if ( (! name) || (! name[0]) ) return;
     
     // Ищем - вдруг такой файл уже есть
     if (ffs_find(name) >= 0)
     {
 	// Уже есть такой файл
-	ui_draw_text(10, 12, "Файл с таким именем уже существует !");
-	ui_sleep(2000);
-	goto again;
+	if (ui_yes_no("Перезаписать файл ?")!=1) goto again;
+	
+	// Удаляем старый файл
+	ffs_remove(ffs_find(name));
     }
     
     // Создаем файл
@@ -329,12 +330,8 @@ again:
 }
 
 
-void tape_load(void)
+void tape_load(uint16_t n)
 {
-    // Получаем файл
-    int16_t n=ui_select_file(TYPE_TAPE);
-    if (n < 0) return;
-    
     // Начинаем чтение
     out.dataPtr=ffs_flash_addr(n);
     out.dataPos=0;
