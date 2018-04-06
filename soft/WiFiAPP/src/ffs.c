@@ -183,6 +183,18 @@ void ffs_init(void)
 }
 
 
+uint32_t ffs_image_at(void)
+{
+    return FFS_AT;
+}
+
+
+uint32_t ffs_image_size(void)
+{
+    return f_size*4096 + sizeof(fat);
+}
+
+
 uint32_t ffs_size(void)
 {
     return f_size*4096;

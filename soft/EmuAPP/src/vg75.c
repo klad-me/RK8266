@@ -5,6 +5,7 @@
 #include "i8080_hal.h"
 #include "align4.h"
 #include "xlat.h"
+#include "main.h"
 
 
 struct screen screen;
@@ -47,6 +48,8 @@ static uint8_t blink=0, flags=0;
 static uint8_t *txt;
 static uint8_t line_text[120], line_attr[120];	// 120 для возможности сдвига изображения вправо
 static uint8_t end_of_screen=0;
+static uint16_t dma_usage=0;
+static uint8_t dma_on=0;
 
 
 // Регистр статуса
@@ -223,6 +226,10 @@ line_done:
 	line_text[x]=0;
 	line_attr[x]=0;
     }
+    
+    
+    // Считаем занятость DMA
+    dma_usage+=o;
 }
 
 
@@ -295,7 +302,7 @@ static inline void render_line(uint8_t *data)
     line++;
     if (line==304)
     {
-	// Последняя видимая строка - выставляем прерывание
+	// Последняя видимая строка - выставляем прерывание ВГ75
 	sreg|=SREG_IR;
     }
 }
@@ -304,10 +311,25 @@ static inline void render_line(uint8_t *data)
 void tv_data_field(void)
 {
     // Начало поля
+    
+    // Пересчитываем частоту проца в соответствии с замедлением DMA
+    if (dma_on)
+    {
+	// DMA работает - учитываем торможение от ВГ75
+	i8080_speed_K=160000000 / (1780000 - dma_usage*4*50);	// 4 такта на байт, 50 полей/сек
+    } else
+    {
+	// DMA отключен - полная скорость
+	i8080_speed_K=160000000 / 1780000;
+    }
+    
+    
+    // Сбрасываем все на начало
     line=0;
     l=0;
     y=0;
     txt=screen.vram;
+    dma_usage=0;
     
     // Мигание курсора
     blink++;
@@ -472,10 +494,12 @@ uint8_t vg75_R(uint8_t A)
 
 void ik57_W(uint8_t A, uint8_t value)
 {
-    if ( (A==0x08) && (value==0x80) )
+    //ets_printf("IK57: W(%d, 0x%02X)\n", A, value);
+    if (A==0x08)
     {
-	// Команда инициализации
+	// Запись в РгР
 	ik57.param_n=0;
+	dma_on=((value & 0x04) != 0);	// флаг включенности канала 2
     } else
     if ( (A==0x04) || (A==0x05) )
     {

@@ -105,7 +105,7 @@
 	
 	function uploadFOTA(event)
 	{
-	    if (! confirm('Внимание !!!\nПри обновлении прошивки теряются все данные Flash-диска !\n\nПодтвердите операцию обновления.'))
+	    if (! confirm('Внимание !!!\nПри обновлении прошивки теряются все данные Flash-диска !\nПеред прошивкой скачайте образ файловой системы.\n\nПодтвердите операцию обновления.'))
 		return;
 	    
 	    var f = event.target.files[0];
@@ -121,19 +121,54 @@
         		{
             		    var percentComplete = 100.0 * evt.loaded / evt.total;
             		    console.log("update "+percentComplete.toFixed(0)+"\n");
-			    document.getElementById('myBar').style.width=percentComplete.toFixed(0)+"%";
+			    document.getElementById('fotaBar').style.width=percentComplete.toFixed(0)+"%";
         		}
     		    }, false);
     		    return xhr;
 		},
                 success: function () {
                     console.log("upload ok\n");
-                    alert("Перезагрузите устройство. Обновление может занять 10-15 секунд.");
-                    location.reload(true);
+                    alert("Устройство сейчас отключится для обновления.\nПроцесс может занять 10-15 секунд.\nИзображение на телевизоре будет отсутствовать.");
+                    //location.reload(true);
                     },
                 error : function () {
                     console.log("upload error\n");
                     alert("Ошибка загрузки файла !");
+                    },
+		});
+	}
+	
+	
+	function uploadFS(event)
+	{
+	    if (! confirm('Внимание !!!\nПри обновлении файловой системы, существующие файлы будут перезаписаны !\n\nПодтвердите операцию обновления.'))
+		return;
+	    
+	    var f = event.target.files[0];
+	    $.ajax({
+                url: "/fs.bin",
+    		type: "PUT",
+    		data: f,
+    		processData: false,
+		xhr: function() {
+    		    var xhr = new window.XMLHttpRequest();
+    		    xhr.upload.addEventListener("progress", function(evt) {
+        		if (evt.lengthComputable)
+        		{
+            		    var percentComplete = 100.0 * evt.loaded / evt.total;
+            		    console.log("upload "+percentComplete.toFixed(0)+"\n");
+			    document.getElementById('fsBar').style.width=percentComplete.toFixed(0)+"%";
+        		}
+    		    }, false);
+    		    return xhr;
+		},
+                success: function () {
+                    console.log("upload ok\n");
+                    location.reload(true);
+                    },
+                error : function () {
+                    console.log("upload error\n");
+                    alert("Ошибка загрузки образа !\nФайл слишком велик ?");
                     },
 		});
 	}
@@ -214,17 +249,33 @@
     
     
     <br/>
-    <h3>Обновление прошивки:</h3>
-    Текущая версия:
-    <script language="javascript">
-	document.write(fwVer);
-    </script>
     <table border=0>
 	<tr>
-	    <td><input type="file" onchange="uploadFOTA(event)" /></td>
-	    <td width="50%"><div id="myProgress"><div id="myBar"></div></div></td>
+	    <td>
+		<h3>Обновление прошивки:</h3>
+		Текущая версия:
+		<script language="javascript">
+		    document.write(fwVer);
+		</script>
+		<table border=0>
+		    <tr>
+			<td><input type="file" onchange="uploadFOTA(event)" /></td>
+			<td width="200px"><div id="fotaProgress"><div id="fotaBar"></div></div></td>
+		    </tr>
+		</table>
+	    </td>
+	    <td width="50px">&nbsp;</td>
+	    <td>
+		<h3>Образ файловой системы:</h3>
+		<a href="/fs.bin">Скачать образ файловой системы</a>
+		<table border=0>
+		    <tr>
+			<td><input type="file" onchange="uploadFS(event)" /></td>
+			<td width="200px"><div id="fsProgress"><div id="fsBar"></div></div></td>
+		    </tr>
+		</table>
+	    </td>
 	</tr>
-    </table>
     <hr/>
     
     

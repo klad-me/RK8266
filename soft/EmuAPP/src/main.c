@@ -17,6 +17,10 @@
 #include "board.h"
 
 
+// Отношение частоты ESP8266 к частоте эмуляции
+volatile uint8_t i8080_speed_K=90;	// 160/1.78
+
+
 void main_program(void)
 {
     // Инитим файловую систему
@@ -62,7 +66,7 @@ void main_program(void)
             }
 	    
             if (! turbo)
-        	prev_T+=cycles*90; else
+        	prev_T+=cycles*i8080_speed_K; else
         	prev_T=T;
             sec_cycles+=cycles;
             cycles=0;

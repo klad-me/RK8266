@@ -43,6 +43,9 @@ extern FILE fat[FAT_SIZE];
 
 void ffs_init(void);
 
+uint32_t ffs_image_at(void);
+uint32_t ffs_image_size(void);
+
 uint32_t ffs_size(void);
 uint32_t ffs_free(void);
 

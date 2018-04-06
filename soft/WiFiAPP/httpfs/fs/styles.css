@@ -1,10 +1,23 @@
-#myProgress {
+#fotaProgress {
     width: 100%;
     background-color: grey;
 }
 
 
-#myBar {
+#fotaBar {
+    width: 0%;
+    height: 20px;
+    background-color: green;
+}
+
+
+#fsProgress {
+    width: 100%;
+    background-color: grey;
+}
+
+
+#fsBar {
     width: 0%;
     height: 20px;
     background-color: green;

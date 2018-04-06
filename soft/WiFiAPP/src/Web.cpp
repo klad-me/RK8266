@@ -3,9 +3,11 @@
 #include <osapi.h>
 #include "ffs.h"
 #include "str.h"
+#include "reboot.h"
 
 
 extern char __BUILD_NUMBER__;
+os_timer_t reboot_tmr;
 
 
 struct map
@@ -28,6 +30,21 @@ static struct map map[]=
 uint32_t Web::webPutStart(const char *path, int size)
 {
     uint8_t type=0;
+    
+    if (! os_strcmp(path, "/firmware.bin"))
+    {
+	// Обновление прошивки
+	if (size <= 0x7C000)
+	    return 0x80000 | 0x80000000; else
+	    return 0;
+    } else
+    if (! os_strcmp(path, "/fs.bin"))
+    {
+	// Образ файловой системы
+	if (size <= (int)ffs_image_size())
+	    return ffs_image_at() | 0x80000000; else
+	    return 0;
+    }
     
     for (uint8_t i=0; map[i].path; i++)
     {
@@ -58,8 +75,26 @@ void Web::webPutData(const char *path, const uint8_t *data, int size)
 }
 
 
+static void fw_done(void *param)
+{
+    reboot(0);
+}
+
+
 const char* Web::webPutEnd(const char *path)
 {
+    if (! os_strcmp(path, "/firmware.bin"))
+    {
+	// Закончилось обновление прошивки - надо перезагрузиться через 2 секунды
+	os_timer_setfn(&reboot_tmr, (os_timer_func_t*)fw_done, 0);
+        os_timer_arm(&reboot_tmr, 2000, 0);
+    } else
+    if (! os_strcmp(path, "/fs.bin"))
+    {
+	// Закончилось обновление файловой системы - перчитаем FFS
+	ffs_init();
+    }
+    
     return 0;
 }
 
@@ -74,6 +109,16 @@ const char* Web::webGet(const char *path, uint32_t *dataPtr, int *size)
     if (! os_strncmp(path, "/del/", 5))
     {
 	return delFile(path+5, dataPtr, size);
+    } else
+    if (! os_strcmp(path, "/fs.bin"))
+    {
+	// Образ файловой системы
+	(*dataPtr)=ffs_image_at() | 0x80000000;
+	(*size)=ffs_image_size();
+	
+	char hdr[128];
+	os_sprintf(hdr, "HTTP/1.0 200 Ok\r\nConnection: close\r\nContent-Type: application/octet-stream\r\nContent-Length: %d\r\n\r\n", (*size));
+	return os_strdup(hdr);
     }
     
     uint8_t type=0;
