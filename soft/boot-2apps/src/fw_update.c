@@ -2,6 +2,7 @@
 
 #include "ets.h"
 #include "crc16.h"
+#include "reboot.h"
 
 
 struct header
@@ -77,7 +78,7 @@ void fw_update(void)
     {
 	// Не будем стирать прошивку
 	ets_printf("FW Update: updated firmware ERROR ! - not erasing update\n");
-	return;
+	reboot(0);
     }
     
     // Можно стирать заголовок обновления
@@ -86,4 +87,6 @@ void fw_update(void)
     
     // Готово
     ets_printf("FW Update: upgrade successfull !\n");
+    
+    reboot(0);
 }

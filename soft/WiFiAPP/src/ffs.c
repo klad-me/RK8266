@@ -19,8 +19,8 @@ static uint32_t f_size;
 #ifdef __ets__
     typedef unsigned int	uint32;
     #define spi_flash_read(addr, buf, size)	SPIRead(addr, buf, size)
-    #define spi_flash_write(addr, buf, size)	do { SPIUnlock(); SPIWrite(addr, buf, size); } while(0)
-    #define spi_flash_erase_sector(addr)	do { SPIUnlock(); SPIEraseSector(addr); } while(0)
+    #define spi_flash_write(addr, buf, size)	SPIWrite(addr, buf, size)
+    #define spi_flash_erase_sector(addr)	SPIEraseSector(addr)
 #endif
 
 
