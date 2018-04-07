@@ -26,7 +26,7 @@ C_SOURCES+= \
 	src/tape.c		src/reboot.c		\
 	src/crc8.c		src/ffs.c		\
 	src/files.c		src/align4.c		\
-	src/fileman.c
+	src/fileman.c		src/help.c
 
 ##############################################################################
 

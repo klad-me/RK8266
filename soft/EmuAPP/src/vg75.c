@@ -74,17 +74,17 @@ static uint8_t sreg=0x00;
 
 static const uint8_t pg_tab[16]=
 {
-    PG_BOTTOM	| PG_RIGHT,	// 0
-    PG_BOTTOM	| PG_LEFT,	// 1
-    PG_TOP	| PG_RIGHT,	// 2
-    PG_TOP	| PG_LEFT,	// 3
-    PG_BOTTOM	| PG_HORIZ,	// 4
-    PG_VERT	| PG_LEFT,	// 5
-    PG_VERT	| PG_RIGHT,	// 6
-    PG_TOP	| PG_HORIZ,	// 7
-		  PG_HORIZ,	// 8
-    PG_VERT,			// 9
-    PG_VERT	| PG_HORIZ,	// A
+    PG_BOTTOM	| PG_RIGHT,	// 0 (0xC0)
+    PG_BOTTOM	| PG_LEFT,	// 1 (0xC4)
+    PG_TOP	| PG_RIGHT,	// 2 (0xC8)
+    PG_TOP	| PG_LEFT,	// 3 (0xCC)
+    PG_BOTTOM	| PG_HORIZ,	// 4 (0xD0)
+    PG_VERT	| PG_LEFT,	// 5 (0xD4)
+    PG_VERT	| PG_RIGHT,	// 6 (0xD8)
+    PG_TOP	| PG_HORIZ,	// 7 (0xDC)
+		  PG_HORIZ,	// 8 (0xE0)
+    PG_VERT,			// 9 (0xE4)
+    PG_VERT	| PG_HORIZ,	// A (0xE8)
 };
 
 

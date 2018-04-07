@@ -71,6 +71,9 @@ int main()
     // Читаем прошивку WiFi
     if (! read(data+0x10000, "../WiFiAPP/out/wifi.1.bin", 0x60000)) return -1;
     
+    // Читаем справку
+    if (! read(data+0x50000, "../help/help.bin", 0x10000)) return -1;
+    
     // Читаем файловую систему HTTP
     if (! read(data+0x70000, "../WiFiAPP/httpfs/httpfs.bin", 0xC000)) return -1;
     

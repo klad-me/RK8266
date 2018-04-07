@@ -14,6 +14,7 @@
 #include "ffs.h"
 #include "zkg.h"
 #include "reboot.h"
+#include "help.h"
 #include "board.h"
 
 
@@ -184,6 +185,11 @@ void main_program(void)
 		case PS2_R_WIN:
 		    // Нажали Win
 		    win=true;
+		    break;
+		
+		case PS2_MENU:
+		    // Отобразить справку
+		    help_display();
 		    break;
 		
 		/*case PS2_F12:

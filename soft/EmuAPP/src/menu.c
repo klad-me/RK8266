@@ -117,6 +117,7 @@ again:
 	"Управление эмуляцией:\n"
 	"Scroll Lock - Турбо режим\n"
 	"WIN+Курсор  - Сдвиг изображения\n"
+	"MENU        - Справка по Радио-86РК\n"
 	);
     xsprintf(str, "RK8266 Сборка #%d", (int)&__BUILD_NUMBER__);
     ui_draw_text(64+6-ets_strlen(str), 33, str);

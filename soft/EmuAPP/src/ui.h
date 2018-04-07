@@ -5,7 +5,7 @@
 #include "ets.h"
 
 
-extern char ui_scr[38][78];
+extern char ui_scr[38][80];
 
 
 void ui_clear(void);

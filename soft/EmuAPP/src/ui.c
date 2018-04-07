@@ -16,7 +16,7 @@
 #include "menu.h"
 
 
-char ui_scr[38][78];
+char ui_scr[38][80];
 
 
 void ui_clear(void)
@@ -232,7 +232,7 @@ void ui_start(void)
     save=screen;
     
     // Перенастраиваем экран под себя
-    screen.screen_w=78;
+    screen.screen_w=80;
     screen.screen_h=38;
     screen.underline_y=7;
     screen.char_h=8;
