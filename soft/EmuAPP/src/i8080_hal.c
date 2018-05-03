@@ -9,7 +9,8 @@
 #include "board.h"
 
 
-uint8_t RAM[0x8000];
+uint8_t RAM[0x8000], RAM2[0x2000];
+uint8_t *ROM=(uint8_t*)(0x40110000-0x2000);	// верх IRAM
 uint32_t i8080_cycles;
 
 
@@ -46,22 +47,29 @@ int i8080_hal_memory_read_byte(int addr)
 	    
 	    case 0xA:
 	    case 0xB:
-		// ВВ55 внешняя
-		//os_printf("ParPort: read %04x\n", addr);
-		return 0x00;
+		// Доп.ОЗУ вместо ВВ55
+		return RAM2[addr & 0x1FFF];
 	    
 	    case 0xC:
 	    case 0xD:
-		// ВГ75
-		return vg75_R(addr & 1);
+		// ВГ75 + шрифты
+		if (addr & (1 << 10))	// A10 - переключатель ВГ75/шрифт
+		{
+		    // Шрифт (A12,A11 - номер шрифта)
+		    uint8_t n=(addr >> 11) & 0x03;
+		    addr&=0x3FF;
+		    addr=((addr & 0x07) << 7) | (addr >> 3);	// меняем адресацию
+		    return zkg[n][addr] ^ 0xFF;
+		} else
+		{
+		    // ВГ75
+		    return vg75_R(addr & 1);
+		}
 	    
 	    case 0xE:
-		// ИК57
-		return ik57_R(addr & 0x0f);
-	    
 	    case 0xF:
-		// ПЗУ
-		return r_u8(&ROM[addr & 0x07ff]);
+		// ПЗУ вместо ИК57 (ИК57 никто не читает)
+		return r_u8(&ROM[addr & 0x1FFF]);
 	    
 	    default:
 		return 0x00;
@@ -89,13 +97,25 @@ void i8080_hal_memory_write_byte(int addr, int byte)
 	    
 	    case 0xA:
 	    case 0xB:
-		// ВВ55 внешняя
-		//os_printf("ParPort: %04x=%02x\n", addr, (uint8_t)byte);
+		// Доп.ОЗУ вместо ВВ55
+		RAM2[addr & 0x1FFF]=byte;
 		break;
 	    
 	    case 0xC:
 	    case 0xD:
-		vg75_W(addr & 1, byte);
+		// ВГ75 + шрифты
+		if (addr & (1 << 10))	// A10 - переключатель ВГ75/шрифт
+		{
+		    // Шрифт (A12,A11 - номер шрифта)
+		    uint8_t n=(addr >> 11) & 0x03;
+		    addr&=0x3FF;
+		    addr=((addr & 0x07) << 7) | (addr >> 3);	// меняем адресацию
+		    if (n!=0) zkg[n][addr]=byte ^ 0xFF;	// 0-й шрифт запрещаем менять
+		} else
+		{
+		    // ВГ75
+		    vg75_W(addr & 1, byte);
+		}
 		break;
 	    
 	    case 0xE:
@@ -104,17 +124,7 @@ void i8080_hal_memory_write_byte(int addr, int byte)
 		break;
 	    
 	    case 0xF:
-		// Знакогенератор
-		{
-		    addr&=0x3ff;
-		    
-		    // Меняем адресацию
-		    uint8_t c=(addr >> 3);
-		    uint8_t l=(addr & 0x07);
-		    
-		    if (c != 0)	// символ с кодом 0 запрещаем менять
-			zkg[ (l<<7) + c ]=(byte ^ 0xff) & 0x3F;	// записываем с инверсией
-		}
+		// ПЗУ - записывать нельзя
 		break;
 	}
     }
@@ -144,10 +154,21 @@ unsigned char* i8080_hal_memory(void)
 }
 
 
+unsigned char* i8080_hal_rom(void)
+{
+    return ROM;
+}
+
+
 void i8080_hal_init(void)
 {
     // Инитим ОЗУ
     ets_memset(RAM, 0x00, sizeof(RAM));
+    ets_memset(RAM2, 0x00, sizeof(RAM2));
+    
+    // Инитим ПЗУ
+    ets_memset(ROM+0x0000, 0xFF, 0x1800);
+    ets_memcpy(ROM+0x1800, ROM_F800, 0x8000);
     
     // Инитим порт пищалки
     gpio_init_output(BEEPER);

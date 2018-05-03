@@ -17,6 +17,7 @@ int to_lower(int c);
 char* ftoa(float num, uint8_t decimals);
 char* itoa(int num);
 int strnlen(const char *s, int maxlen);
+int parse_hex(const char *s);
 
 
 #ifdef __cplusplus

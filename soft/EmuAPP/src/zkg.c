@@ -2,7 +2,8 @@
 
 #include "ets.h"
 
-uint8_t zkg[1024];
+
+uint8_t zkg[4][1024];
 
 const uint8_t AT_IRAM zkg_rom[1024]=
 {

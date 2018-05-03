@@ -10,13 +10,15 @@
 #include "xprintf.h"
 
 
+#define FLASH_TEMP_AT	0x60000
+static uint8_t tape_buf[0x1000];
+
+
+
 #define IN_SYNC_COUNT	16
 #define IN_TIMEOUT	5000
-#define IN_BUF_SIZE	(24*1024)
 static struct in
 {
-    uint8_t  buf[IN_BUF_SIZE];
-    
     uint32_t prev_cycles;
     uint8_t  bit, byte, bit_cnt;
     uint8_t  start, c;
@@ -29,10 +31,8 @@ static struct in
 
 #define OUT_SYNC_COUNT	256
 #define OUT_BIT_TIME	1600
-#define OUT_BUF_SIZE	512
 static struct out
 {
-    uint8_t  buf[OUT_BUF_SIZE];
     uint16_t pos;
     uint32_t prev_cycles;
     uint32_t dataPtr;
@@ -86,8 +86,14 @@ static void tape_in_bit(void)
 	}
 	
 	// Принят байт - кладем в буфер
-	if (in.size < IN_BUF_SIZE)
-	    in.buf[in.size++]=in.byte;
+	tape_buf[(in.size++) & 0xFFF]=in.byte;
+	if ( (in.size & 0xFFF) == 0 )
+	{
+	    // Конец страницы - записываем ее на Flash
+	    SPIUnlock();
+	    SPIEraseSector( (FLASH_TEMP_AT + in.size - 0x1000) / 4096 );
+	    SPIWrite(FLASH_TEMP_AT + in.size - 0x1000, tape_buf, 0x1000);
+	}
 	
 	// Начинаем прием следующего байта
 	in.byte=0;
@@ -251,21 +257,21 @@ bool tape_out(void)
 	    }
 	    
 	    // Проверим - остались ли данные в буфере
-	    if (out.pos >= OUT_BUF_SIZE)
+	    if (out.pos >= 0x1000)
 	    {
 		// Надо подгрузить данные из флэша в буфер
 		uint16_t s=out.dataSize - out.dataPos;
-		if (s > OUT_BUF_SIZE)
-		    s=OUT_BUF_SIZE; else
+		if (s > 0x1000)
+		    s=0x1000; else
 		    s=(s+3) & ~0x03;
 		//ets_printf("TAPE: load from flash size=%d ptr=0x%05X buf=0x%08X\n", s, out.dataPtr, (uint32_t)out.buf);
-		SPIRead(out.dataPtr, out.buf, s);
+		SPIRead(out.dataPtr, tape_buf, s);
 		out.dataPtr+=s;
 		out.pos=0;
 	    }
 	    
 	    // Берем следующий байт из буфера
-	    out.byte=out.buf[out.pos++];
+	    out.byte=tape_buf[out.pos++];
 	    out.bit=0x80;
 	    out.dataPos++;
 	    //ets_printf("TAPE: data=0x%02X\n", out.byte);
@@ -290,6 +296,13 @@ bool tape_periodic(void)
 	if (T > IN_TIMEOUT)
 	{
 	    // Таймаут - закончили прием
+	    if ( (in.size & 0xFFF) != 0 )
+	    {
+		// Записываем остаток страницы во Flash
+		SPIUnlock();
+		SPIEraseSector( (FLASH_TEMP_AT + (in.size & ~0xFFF)) / 4096 );
+		SPIWrite(FLASH_TEMP_AT + (in.size & ~0xFFF), tape_buf, 0x1000);
+	    }
 	    ets_printf("TAPE IN DONE size=%d !\n", in.size);
 	    in.start=false;
 	    return true;
@@ -321,11 +334,24 @@ again:
     // Создаем файл
     screen.cursor_y=99;
     ui_draw_text(10, 12, "Запись в файл...");
-    if (! ffs_write(name, TYPE_TAPE, in.buf, in.size))
+    int16_t n=ffs_create(name, TYPE_TAPE, in.size);
+    if (n < 0)
     {
 	// Ошибка записи
 	ui_draw_text(10, 12, "Ошибка записи в файл (диск полон?) !");
 	ui_sleep(2000);
+    }
+    
+    // Копируем данные
+    uint16_t p=0;
+    while (p < in.size)
+    {
+	uint16_t l=in.size-p;
+	if (l > 0x1000) l=0x1000;
+	
+	SPIRead(FLASH_TEMP_AT + p, tape_buf, 0x1000);
+	ffs_writeData(n, p, tape_buf, l);
+	p+=l;
     }
 }
 
@@ -336,7 +362,7 @@ void tape_load(uint16_t n)
     out.dataPtr=ffs_flash_addr(n);
     out.dataPos=0;
     out.dataSize=fat[n].size;
-    out.pos=OUT_BUF_SIZE;
+    out.pos=0x1000;
     out.sync=OUT_SYNC_COUNT;
     out.start=1;
 }

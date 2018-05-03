@@ -22,6 +22,7 @@ enum
     TYPE_PROG,
     TYPE_GAME,
     TYPE_UTIL,
+    TYPE_ROM,
     
     TYPE_FREE=0xff,
 };

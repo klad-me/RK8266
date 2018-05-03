@@ -7,7 +7,7 @@
 </head> 
 <body bgcolor="black" alink="red" link="white" vlink="white" text="white" onload=""><font face="sans-serif"> 
     <script language="javascript">
-	var TYPE_TAPE=1, TYPE_PROG=2, TYPE_GAME=3, TYPE_UTIL=4;
+	var TYPE_TAPE=1, TYPE_PROG=2, TYPE_GAME=3, TYPE_UTIL=4, TYPE_ROM=5;
 	var files=[];
 	var flashSize=0, flashFree=0;
 	var fwVer=0;
@@ -245,6 +245,17 @@
     </script>
     <br/>
     <input type="file" onchange="uploadFile(event, '/tape/')" />
+    <hr/>
+    
+    
+    <br/>
+    <h3>Образы ПЗУ:</h3>
+    
+    <script language="javascript">
+	listFiles(TYPE_ROM, '/rom/');
+    </script>
+    <br/>
+    <input type="file" onchange="uploadFile(event, '/rom/')" />
     <hr/>
     
     

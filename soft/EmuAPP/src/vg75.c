@@ -242,7 +242,7 @@ static inline void render_line(uint8_t *data)
     } else
     {
 	// Видимая линия
-	const uint8_t *z=zkg+( ((uint16_t)l) << 7);
+	const uint8_t* z=zkg[0] + ( ((uint16_t)l) << 7);
 	uint8_t i, x=4, o=0;
 	uint8_t z1,z2,z3,z4;
 	
@@ -272,7 +272,7 @@ static inline void render_line(uint8_t *data)
 		    }	\
 		} else	\
 		{	\
-		    zz=(l & 0x08) ? 0x00 : z[c];	\
+		    zz=(l & 0x08) ? 0x00 : z[(uint16_t)c | (((a >> 2) & 0x03) << 10)];	\
 		    if ( (a & UNDERLINE) && (l==screen.underline_y) ) zz|=0x3F;	\
 		}	\
 		if (a & REVERSE) zz^=0x3F;	\
@@ -381,7 +381,10 @@ void vg75_init(uint8_t *vram)
 	ets_memcpy(buf[i], tv_empty_line, 64);
     
     // Инитим знакогенератор в ОЗУ
-    ets_memcpy(zkg, zkg_rom, 1024);
+    ets_memcpy(zkg[0], zkg_rom, 1024);
+    ets_memset(zkg[1], 0x00, 1024);
+    ets_memset(zkg[2], 0x00, 1024);
+    ets_memset(zkg[3], 0x00, 1024);
 }
 
 

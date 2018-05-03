@@ -23,6 +23,7 @@ static struct map map[]=
 	"/prog/",	TYPE_PROG,
 	"/game/",	TYPE_GAME,
 	"/util/",	TYPE_UTIL,
+	"/rom/",	TYPE_ROM,
 	0,		0
     };
 

@@ -77,3 +77,22 @@ int strnlen(const char *s, int maxlen)
     for ( ; (*s) && (maxlen > 0); maxlen--, l++, s++);
     return l;
 }
+
+
+int parse_hex(const char *s)
+{
+    int x=0;
+    
+    while (*s)
+    {
+        if (! is_xdigit(*s)) break;
+        x<<=4;
+        if ( ((*s)>='A') && ((*s)<='F') ) x|=(*s)-'A'+10; else
+        if ( ((*s)>='a') && ((*s)<='f') ) x|=(*s)-'a'+10; else
+            x|=(*s)-'0';
+	
+        s++;
+    }
+    
+    return x;
+}

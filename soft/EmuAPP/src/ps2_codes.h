@@ -122,6 +122,10 @@
 #define PS2_KP_8	0x75
 #define PS2_KP_9	0x7D
 
+// Special
+#define PS2_PAUSE	0x214
+#define PS2_PRINT	0x112
+
 
 // Keyboard symbols
 #define KEY_ENTER	'\n'

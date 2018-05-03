@@ -15,6 +15,7 @@
 #include "zkg.h"
 #include "reboot.h"
 #include "help.h"
+#include "str.h"
 #include "board.h"
 
 
@@ -31,6 +32,53 @@ void main_program(void)
     i8080_hal_init();
     i8080_init();
     i8080_jump(0xF800);
+    
+    // Читаем образы ПЗУ
+    {
+        int i;
+	
+        for (i=0; i<FAT_SIZE; i++)
+        {
+            if (fat[i].type == TYPE_ROM)
+            {
+                // Образ
+                const char *name=ffs_name(i);
+                ets_printf("Loading ROM '%s'\n", name);
+                if ( (ets_strlen(name)!=4) ||
+                     (! is_xdigit(name[0])) ||
+                     (! is_xdigit(name[1])) ||
+                     (! is_xdigit(name[2])) ||
+                     (! is_xdigit(name[3])) )
+                {
+                    // Неверное имя файла
+                    ets_printf("  Bad file name\n");
+                    continue;
+                }
+		
+                // Адрес
+                int addr=parse_hex(name);
+                if ( (addr >= 0xE000) && (addr+fat[i].size <= 0x10000) )
+                {
+                    // ПЗУ
+                    // Загружаем в IRAM (можно использовать ffs_read, т.к. он работает с 4-байтными словами)
+                    ffs_read(i, 0, i8080_hal_rom()+(addr-0xE000), fat[i].size);
+                    ets_printf("  OK\n");
+                } else
+                if ( (addr < 0x8000) && (addr+fat[i].size <= 0x8000) )
+                {
+                    // ОЗУ
+                    ffs_read(i, 0, i8080_hal_memory()+addr, fat[i].size);
+                    ets_printf("  OK\n");
+                } else
+                {
+                    // Неверный адрес или размер
+                    ets_printf("  Bad address or size\n");
+                    continue;
+                }
+
+            }
+        }
+    }
     
     // Инитим экран
     tv_init();
@@ -134,7 +182,7 @@ void main_program(void)
 	    uint16_t c;
 	    bool rst=false;
 	    
-    	    ps2_leds(kbd_rus(), false, turbo);
+    	    ps2_leds(kbd_rus(), true, turbo);
     	    ps2_periodic();
     	    c=keymap_periodic();
     	    switch (c)
@@ -151,6 +199,41 @@ void main_program(void)
 		    break;
 		
 		case PS2_F5:
+		    // Переход на ПЗУ
+		    i8080_jump(0xE000);
+		    break;
+		
+		case PS2_F6:
+		    // Переход на ПЗУ
+		    i8080_jump(0xE004);
+		    break;
+		
+		case PS2_F7:
+		    // Переход на ПЗУ
+		    i8080_jump(0xE008);
+		    break;
+		
+		case PS2_F8:
+		    // Переход на ПЗУ
+		    i8080_jump(0xE00C);
+		    break;
+		
+		case PS2_F10:
+		    // Переход на ПЗУ
+		    i8080_jump(0xE010);
+		    break;
+		
+		case PS2_F9:
+		    // Переход на ПЗУ
+		    i8080_jump(0xE014);
+		    break;
+		
+		case PS2_F11:
+		    // Выход в монитор
+		    i8080_jump(0xF800);
+		    break;
+		
+		case PS2_F12:
 		    // Файловый менеджен
 		    ui_start();
 			menu_fileman();
@@ -158,20 +241,14 @@ void main_program(void)
 		    rst=true;
 		    break;
 		
-		case PS2_F9:
-		    // Выход в монитор
-		    i8080_jump(0xF800);
-		    break;
-		
-		case PS2_F10:
+		case PS2_PAUSE:
 		    // Сброс
-        	    ets_memset(i8080_hal_memory(), 0x00, 0x8000);
         	    i8080_init();
+        	    i8080_hal_init();
         	    i8080_jump(0xF800);
-        	    ets_memcpy(zkg, zkg_rom, 1024);
         	    break;
 		
-		case PS2_F12:
+		case PS2_PRINT:
 		    // WiFi
 		    reboot(0x55AA55AA);
 		    break;

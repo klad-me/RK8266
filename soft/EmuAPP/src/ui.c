@@ -44,8 +44,8 @@ void ui_header(const char *s)
 	for (i=0; i<l; i++)
 	{
 	    uint8_t c=r_u8(&xlat[(uint8_t)s[i]]);
-	    uint8_t b1=r_u8(&zkg[ ((y*2+0) << 7) + c]);
-	    uint8_t b2=r_u8(&zkg[ ((y*2+1) << 7) + c]);
+	    uint8_t b1=r_u8(&zkg[0][ ((y*2+0) << 7) + c]);
+	    uint8_t b2=r_u8(&zkg[0][ ((y*2+1) << 7) + c]);
 	    ui_scr[HEADER_Y+y][x+i*3+0]=syms[ ((b1 >> 2) & 0x0C) | ((b2 >> 4) & 0x03) ];
 	    ui_scr[HEADER_Y+y][x+i*3+1]=syms[ (b1 & 0x0C) | ((b2 >> 2) & 0x03) ];
 	    ui_scr[HEADER_Y+y][x+i*3+2]=syms[ ((b1 << 2) & 0x0C) | (b2  & 0x03) ];

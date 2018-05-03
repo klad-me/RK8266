@@ -133,6 +133,11 @@ extern "C" {
 #define KEY_RIGHT	0x04
 
 
+// Special
+#define PS2_PAUSE	0x214
+#define PS2_PRINT	0x112
+
+
 char ps2_sym(void);
 
 
